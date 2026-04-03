@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitab — Book Screen</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#0D7377;--accent:#C8963E;--bg:#FAFAF8;--surface:#fff;--tp:#1A1815;--ts:#5C5850;--g50:#F5F4F2;--g100:#E8E6E3;--g200:#D4D1CC;--g300:#B8B4AE;--g400:#9C9790;--g500:#7A756E;--g700:#3E3B35;--success:#2D8659;--warning:#C4841D;--error:#C43D3D;--info:#2D6B8A}
+body{font-family:'Inter',sans-serif;background:#C8C4Be;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px;gap:12px}
+.hint{font-size:13px;color:#5C5850;text-align:center;max-width:420px;line-height:1.6}.hint strong{color:#1A1815}
+
+.pf{background:#111;border-radius:48px;padding:12px;box-shadow:0 20px 70px rgba(0,0,0,.3);width:393px;height:852px;position:relative}
+.ps{width:100%;height:100%;border-radius:38px;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);position:relative}
+.dyn-isl{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#000;border-radius:18px;z-index:100}
+.stat-bar{height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 4px;font-size:14px;font-weight:600;color:var(--tp);flex-shrink:0}
+
+/* App bar */
+.app-bar{display:flex;align-items:center;justify-content:space-between;padding:4px 20px 8px;flex-shrink:0}
+.app-bar h1{font-family:'DM Serif Display',serif;font-size:28px;font-weight:400;color:var(--tp)}
+.ab-right{display:flex;align-items:center;gap:4px}
+.plus-btn{background:none;border:none;cursor:pointer;font-size:24px;color:var(--primary);padding:8px}
+.select-count{font-family:'DM Serif Display',serif;font-size:20px;color:var(--tp)}
+.del-btn{background:none;border:none;cursor:pointer;font-size:20px;color:var(--error);padding:8px}
+.cancel-btn{background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);padding:8px}
+
+/* Filter row */
+.filter-row{display:flex;align-items:center;gap:6px;padding:8px 16px;flex-shrink:0;overflow-x:auto;border-bottom:1px solid var(--g100)}
+.filter-row::-webkit-scrollbar{display:none}
+.fbtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--g200);border-radius:9px;background:var(--surface);cursor:pointer;flex-shrink:0;color:var(--g500);font-size:14px;transition:all .15s}
+.fbtn:active{background:var(--g50)}
+.fchip{padding:6px 13px;border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--g200);background:var(--surface);color:var(--ts);white-space:nowrap;flex-shrink:0;transition:all .15s}
+.fchip.active{border-color:var(--primary);background:rgba(13,115,119,.06);color:var(--primary);font-weight:600}
+
+/* Search bar */
+.search-bar{display:none;padding:8px 16px;flex-shrink:0;border-bottom:1px solid var(--g100)}
+.search-bar.open{display:block}
+.search-wrap{position:relative}
+.search-input{width:100%;padding:10px 14px 10px 36px;border:1.5px solid var(--g200);border-radius:12px;font-size:13px;font-family:'Inter',sans-serif;background:var(--surface);outline:none}
+.search-input:focus{border-color:var(--primary)}
+.search-input::placeholder{color:var(--g300)}
+.s-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:14px}
+
+/* Scroll content */
+.book-ct{flex:1;overflow-y:auto;padding:0 16px 100px}.book-ct::-webkit-scrollbar{display:none}
+
+/* Scroll to top */
+.scroll-top{position:absolute;top:160px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--primary);color:#fff;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;z-index:80;opacity:0;pointer-events:none;transition:all .3s;box-shadow:0 4px 12px rgba(13,115,119,.3)}
+.scroll-top.visible{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+
+/* Day separator */
+.day-sep{display:flex;align-items:center;gap:8px;margin:16px 0 10px;position:sticky;top:0;z-index:10;background:var(--bg);padding:6px 0}
+.day-sep:first-child{margin-top:8px}
+.day-text{font-family:'DM Serif Display',serif;font-size:14px;color:var(--tp);white-space:nowrap}
+.day-line{flex:1;height:1px;background:var(--g100)}
+.day-cond{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(45,107,138,.08);border-radius:12px;font-size:10px;color:var(--info);cursor:pointer;white-space:nowrap;transition:background .15s}
+.day-cond:active{background:rgba(45,107,138,.15)}
+
+/* Entry card */
+.entry-card{display:flex;align-items:stretch;background:var(--surface);border-radius:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(26,24,21,.08);cursor:pointer;transition:all .2s;overflow:hidden;position:relative}
+.entry-card:active{transform:scale(.98)}
+.entry-card.selected{outline:2px solid var(--primary);outline-offset:-2px}
+.ec-border{width:4px;flex-shrink:0;border-radius:12px 0 0 12px}
+.ec-check{width:0;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:width .2s;flex-shrink:0}
+.ec-check.visible{width:40px}
+.ec-checkbox{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--g300);display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all .15s}
+.ec-checkbox.checked{background:var(--primary);border-color:var(--primary);color:#fff}
+.ec-body{flex:1;padding:13px 14px;display:flex;align-items:center;gap:10px;min-width:0}
+.ec-left{flex:1;min-width:0}
+.ec-name{font-size:13px;font-weight:500;color:var(--tp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ec-cat{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--g400);margin-top:2px}
+.ec-cat-icon{font-size:12px}
+.ec-tooltip{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--g100);font-size:9px;color:var(--g500);cursor:pointer;margin-left:2px;font-weight:700;position:relative}
+.ec-tooltip-msg{display:none;position:absolute;bottom:22px;left:50%;transform:translateX(-50%);background:var(--g700);color:#fff;font-size:10px;padding:6px 10px;border-radius:8px;white-space:nowrap;z-index:20;font-weight:400}
+.ec-tooltip.show-tip .ec-tooltip-msg{display:block}
+.ec-right{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:2px}
+.ec-time{font-size:11px;color:var(--ts);font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px}
+.ec-goal{font-size:11px;font-weight:600}
+.ec-goal.met{color:var(--success)}
+.ec-goal.not-met{color:var(--error)}
+.ec-dur{font-size:10px;color:var(--g400);font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px}
+.ec-progress{font-size:10px;color:var(--g500);font-family:'JetBrains Mono',monospace}
+
+/* Condition card */
+.cond-card{display:flex;align-items:center;gap:12px;background:rgba(45,107,138,.04);border:1px solid rgba(45,107,138,.12);border-radius:12px;padding:13px 16px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.cond-card:active{transform:scale(.98)}
+.cond-emoji{font-size:22px;flex-shrink:0}
+.cond-info{flex:1}.cond-name{font-size:13px;font-weight:600;color:var(--info)}.cond-dates{font-size:11px;color:var(--g400);margin-top:2px}
+
+/* Long press menu */
+.lp-menu{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--surface);border:1px solid var(--g100);border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:30;display:none}
+.lp-menu.open{display:block}
+.lp-option{padding:10px 16px;font-size:13px;color:var(--tp);cursor:pointer;border-radius:8px;white-space:nowrap;transition:background .1s}
+.lp-option:hover{background:var(--g50)}
+.lp-option.danger{color:var(--error)}
+
+/* No entries message */
+.no-entries{text-align:center;padding:8px;font-size:11px;color:var(--g400);font-style:italic}
+
+/* FAB */
+.fab{position:absolute;bottom:76px;right:18px;width:54px;height:54px;border-radius:50%;background:var(--primary);color:#fff;border:none;cursor:pointer;box-shadow:0 6px 20px rgba(13,115,119,.35);display:flex;align-items:center;justify-content:center;z-index:55}
+.fab svg{width:26px;height:26px}
+
+/* Bottom nav */
+.bnav{display:flex;justify-content:space-around;align-items:center;height:58px;background:var(--surface);border-top:1px solid var(--g100);flex-shrink:0;padding-bottom:4px;z-index:50}
+.ni{display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;padding:4px 8px;border:none;background:transparent}
+.ni svg{width:21px;height:21px}.ni.a svg{color:var(--primary)}.ni:not(.a) svg{color:var(--g400)}
+.nl{font-size:9px;font-weight:500}.ni.a .nl{color:var(--primary)}.ni:not(.a) .nl{color:var(--g400)}
+
+/* Toast */
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(80px);background:#2A2722;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:1000;transition:transform .3s;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Confirm dialog */
+.confirm-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:300;display:none;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--surface);border-radius:16px;padding:24px;width:280px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.2)}
+.confirm-title{font-family:'DM Serif Display',serif;font-size:18px;color:var(--tp);margin-bottom:8px}
+.confirm-msg{font-size:13px;color:var(--ts);margin-bottom:20px;line-height:1.5}
+.confirm-actions{display:flex;gap:10px;justify-content:center}
+.confirm-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif}
+.cb-cancel{background:var(--g100);color:var(--ts)}
+.cb-danger{background:rgba(196,61,61,.1);color:var(--error)}
+</style>
+</head>
+<body>
+
+<div class="hint"><strong>Long-press cards</strong> for options menu. Try <strong>filter chips</strong>, <strong>search</strong>, and <strong>scroll down</strong> to see the "Today ↑" button.</div>
+
+<div class="pf"><div class="ps">
+<div class="dyn-isl"></div>
+<div class="stat-bar"><span>8:00 AM</span><span style="font-size:11px">📶 🔋</span></div>
+
+<!-- App bar -->
+<div class="app-bar" id="appBar">
+  <div></div>
+  <h1 id="abTitle">Book</h1>
+  <button class="plus-btn" id="plusBtn">+</button>
+</div>
+
+<!-- Filter row -->
+<div class="filter-row">
+  <button class="fbtn" id="filterAdvBtn" title="Filters">⚙</button>
+  <button class="fbtn" id="searchBtn" title="Search">🔍</button>
+  <div class="fchip" data-filter="date">📅 Date</div>
+  <div class="fchip" data-filter="categories">Categories ▾</div>
+  <div class="fchip" data-filter="goalstatus">Goal Status ▾</div>
+  <div class="fchip" data-filter="conditions">Conditions</div>
+</div>
+
+<div class="search-bar" id="searchBarEl">
+  <div class="search-wrap">
+    <span class="s-icon">🔍</span>
+    <input class="search-input" placeholder="Search activities, categories, notes...">
+  </div>
+</div>
+
+<!-- Scroll to top -->
+<div class="scroll-top" id="scrollTop">Today ↑</div>
+
+<!-- Content -->
+<div class="book-ct" id="bookContent"></div>
+
+<!-- FAB -->
+<button class="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+
+<!-- Confirm dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Delete Entry?</div>
+    <div class="confirm-msg" id="confirmMsg">This cannot be undone.</div>
+    <div class="confirm-actions">
+      <button class="confirm-btn cb-cancel" id="confirmCancel">Cancel</button>
+      <button class="confirm-btn cb-danger" id="confirmAction">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bnav">
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 11.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5L12 3l8 8.5z"/></svg><span class="nl">Home</span></button>
+  <button class="ni a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span class="nl">Book</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18V12h4v6M10 18V8h4v10M16 18V4h4v14"/></svg><span class="nl">Insights</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="4"/><path d="M17 19v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/></svg><span class="nl">Social</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg><span class="nl">Profile</span></button>
+</div>
+
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+var activeFilter = 'all';
+var openMenuId = null;
+
+function $(id){return document.getElementById(id)}
+function mk(t,c){var e=document.createElement(t);if(c)e.className=c;return e}
+function tx(e,t){e.textContent=t;return e}
+
+var entries = [
+  {day:'Today, April 3, 2026',cond:null,items:[
+    {id:'e1',name:'Read Quran',cat:'Spiritual',catIcon:'🕌',catColor:'#0D7377',time:'7:00 AM',dur:'20 min',goal:'✓',progress:'12/10',goalClass:'met',hasSchedule:true,hasPeriod:true},
+    {id:'e2',name:'Pray on Time',cat:'Spiritual',catIcon:'🕌',catColor:'#0D7377',time:'5:15 AM',dur:null,goal:'✓',progress:'Fajr',goalClass:'met',hasSchedule:true,hasPeriod:true}
+  ]},
+  {day:'Yesterday, April 2',cond:'✈️ Traveling (Day 5)',items:[
+    {id:'e3',name:'Read Quran',cat:'Spiritual',catIcon:'🕌',catColor:'#0D7377',time:'6:45 AM',dur:'25 min',goal:'✓',progress:'15/10',goalClass:'met',hasSchedule:true,hasPeriod:true},
+    {id:'e4',name:'Morning Run',cat:'Health & Fitness',catIcon:'🏃',catColor:'#2D8659',time:'7:30 – 8:10 AM',dur:'40 min',goal:'✓',progress:'6.2 km',goalClass:'met',hasSchedule:true,hasPeriod:true},
+    {id:'e5',name:'Pray on Time',cat:'Spiritual',catIcon:'🕌',catColor:'#0D7377',time:'12:35 PM',dur:null,goal:'✕',progress:'Late',goalClass:'not-met',hasSchedule:true,hasPeriod:true},
+    {id:'e6',name:'Quick note',cat:null,catIcon:null,catColor:null,time:'3:15 PM',dur:null,goal:null,progress:null,goalClass:null,hasSchedule:false,hasPeriod:false}
+  ]},
+  {day:'Tuesday, March 31',cond:'✈️ Traveling (Day 3)',items:[
+    {id:'e7',name:'Read Quran',cat:'Spiritual',catIcon:'🕌',catColor:'#0D7377',time:'8:00 AM',dur:'15 min',goal:'✓',progress:'10/10',goalClass:'met',hasSchedule:true,hasPeriod:true},
+    {id:'e8',name:'Study Arabic',cat:'Learning',catIcon:'📚',catColor:'#C8963E',time:'7:00 PM',dur:'30 min',goal:'✓',progress:null,goalClass:'met',hasSchedule:true,hasPeriod:true},
+    {id:'e9',name:'Body Weight',cat:'Health & Fitness',catIcon:'🏃',catColor:'#2D8659',time:'6:30 AM',dur:null,goal:null,progress:'178 lbs',goalClass:null,hasSchedule:true,hasPeriod:false}
+  ]},
+  {day:'Monday, March 30',cond:null,items:[
+    {id:'e10',name:'Read Quran',cat:'Spiritual',catIcon:'🕌',catColor:'#0D7377',time:'7:15 AM',dur:'22 min',goal:'✓',progress:'11/10',goalClass:'met',hasSchedule:true,hasPeriod:true},
+    {id:'e11',name:'Morning Run',cat:'Health & Fitness',catIcon:'🏃',catColor:'#2D8659',time:'8:00 – 8:35 AM',dur:'35 min',goal:'✓',progress:'5.1 km',goalClass:'met',hasSchedule:true,hasPeriod:true},
+    {id:'e12',name:'Drink Water',cat:'Health & Fitness',catIcon:'🏃',catColor:'#2D8659',time:'All day',dur:null,goal:'✓',progress:'8/8',goalClass:'met',hasSchedule:true,hasPeriod:true}
+  ]},
+  {day:'Sunday, March 29',cond:'✈️ Traveling started',items:[
+    {id:'e13',name:'Read Quran',cat:'Spiritual',catIcon:'🕌',catColor:'#0D7377',time:'9:00 AM',dur:'10 min',goal:'✕',progress:'5/10',goalClass:'not-met',hasSchedule:true,hasPeriod:true},
+    {id:'e14',name:'Pray on Time',cat:'Spiritual',catIcon:'🕌',catColor:'#0D7377',time:'1:00 PM',dur:null,goal:'✓',progress:'Dhuhr',goalClass:'met',hasSchedule:true,hasPeriod:true}
+  ]}
+];
+
+var conditions = [
+  {id:'c1',emoji:'✈️',name:'Traveling',dates:'Mar 29, 2026 – Present'},
+  {id:'c2',emoji:'🤒',name:'Sick',dates:'Mar 15, 2026 – Mar 18, 2026'},
+  {id:'c3',emoji:'🤕',name:'Injured',dates:'Feb 10, 2026 – Feb 14, 2026'}
+];
+
+function initAppBar(){
+  $('plusBtn').addEventListener('click',function(){toast('Opening new entry form...')});
+}
+
+function renderContent(){
+  var ct=$('bookContent');ct.textContent='';
+  closeMenu();
+
+  if(activeFilter==='conditions'){
+    renderConditionsList(ct);return;
+  }
+
+  entries.forEach(function(day){
+    // Day separator
+    var sep=mk('div','day-sep');
+    sep.appendChild(tx(mk('span','day-text'),day.day));
+    sep.appendChild(mk('div','day-line'));
+    if(day.cond&&activeFilter!=='conditions'){
+      var cond=mk('div','day-cond');cond.textContent=day.cond;
+      cond.addEventListener('click',function(e){e.stopPropagation();toast('Opening condition details...')});
+      sep.appendChild(cond);
+    }
+    ct.appendChild(sep);
+
+    // Entry cards
+    day.items.forEach(function(entry){
+      var card=mk('div','entry-card');
+      card.setAttribute('data-id',entry.id);
+
+      // Left border
+      var border=mk('div','ec-border');
+      border.style.background=entry.catColor||'#9C9790';
+      card.appendChild(border);
+
+      // Body
+      var body=mk('div','ec-body');
+      var left=mk('div','ec-left');
+      left.appendChild(tx(mk('div','ec-name'),entry.name));
+      if(entry.cat){
+        var catLine=mk('div','ec-cat');
+        catLine.appendChild(tx(mk('span','ec-cat-icon'),entry.catIcon));
+        catLine.appendChild(document.createTextNode(entry.cat));
+        if(entry.hasSchedule&&!entry.hasPeriod){
+          var tip=mk('span','ec-tooltip');tip.textContent='ⓘ';
+          var tipMsg=mk('span','ec-tooltip-msg');tipMsg.textContent="Not linked to a period. Tap to link.";
+          tip.appendChild(tipMsg);
+          tip.addEventListener('click',function(e){e.stopPropagation();tip.classList.toggle('show-tip');setTimeout(function(){tip.classList.remove('show-tip')},3000)});
+          catLine.appendChild(tip);
+        }
+        left.appendChild(catLine);
+      }
+      body.appendChild(left);
+
+      var right=mk('div','ec-right');
+      var timeLine=mk('div','ec-time');
+      timeLine.appendChild(tx(mk('span'),entry.time));
+      if(entry.goal){
+        var goalEl=mk('span','ec-goal '+(entry.goalClass||''));
+        goalEl.textContent=entry.goal;
+        timeLine.appendChild(goalEl);
+      }
+      right.appendChild(timeLine);
+      if(entry.dur||entry.progress){
+        var durLine=mk('div','ec-dur');
+        if(entry.dur)durLine.appendChild(tx(mk('span'),entry.dur));
+        if(entry.progress)durLine.appendChild(tx(mk('span','ec-progress'),entry.progress));
+        right.appendChild(durLine);
+      }
+      body.appendChild(right);
+      card.appendChild(body);
+
+      // Long press menu
+      var menu=mk('div','lp-menu');menu.setAttribute('data-menu',entry.id);
+      [['Duplicate','dup'],['Edit','edit'],['Delete','del']].forEach(function(opt){
+        var o=mk('div','lp-option'+(opt[1]==='del'?' danger':''));
+        o.textContent=opt[0];
+        o.addEventListener('click',function(e){
+          e.stopPropagation();closeMenu();
+          if(opt[1]==='del')showConfirm('Delete "'+entry.name+'"?','This cannot be undone.',function(){toast('"'+entry.name+'" deleted')});
+          else if(opt[1]==='dup')toast('Duplicating "'+entry.name+'"...');
+          else toast('Opening edit form...');
+        });
+        menu.appendChild(o);
+      });
+      card.appendChild(menu);
+
+      // Click handler
+      card.addEventListener('click',function(e){
+        if(e.target.closest('.lp-menu')||e.target.closest('.ec-tooltip'))return;
+        toast('Opening "'+entry.name+'" for editing...');
+      });
+
+      // Long press
+      var pressTimer=null;
+      card.addEventListener('mousedown',function(e){if(e.target.closest('.ec-tooltip'))return;pressTimer=setTimeout(function(){openMenu(entry.id)},500)});
+      card.addEventListener('mouseup',function(){clearTimeout(pressTimer)});
+      card.addEventListener('mouseleave',function(){clearTimeout(pressTimer)});
+      card.addEventListener('touchstart',function(e){if(e.target.closest('.ec-tooltip'))return;pressTimer=setTimeout(function(){openMenu(entry.id)},500)},{passive:true});
+      card.addEventListener('touchend',function(){clearTimeout(pressTimer)});
+
+      ct.appendChild(card);
+    });
+  });
+}
+
+function renderConditionsList(ct){
+  conditions.forEach(function(c){
+    var card=mk('div','cond-card');
+    card.appendChild(tx(mk('span','cond-emoji'),c.emoji));
+    var info=mk('div','cond-info');
+    info.appendChild(tx(mk('div','cond-name'),c.name));
+    info.appendChild(tx(mk('div','cond-dates'),c.dates));
+    card.appendChild(info);
+    card.addEventListener('click',function(){toast('Editing "'+c.name+'"...')});
+    ct.appendChild(card);
+  });
+}
+
+function openMenu(id){
+  closeMenu();
+  var menu=document.querySelector('[data-menu="'+id+'"]');
+  if(menu){menu.classList.add('open');openMenuId=id}
+}
+function closeMenu(){
+  if(openMenuId){
+    var m=document.querySelector('[data-menu="'+openMenuId+'"]');
+    if(m)m.classList.remove('open');
+    openMenuId=null;
+  }
+}
+
+// Confirm dialog
+var confirmCb=null;
+function showConfirm(title,msg,cb){
+  $('confirmTitle').textContent=title;$('confirmMsg').textContent=msg;
+  confirmCb=cb;$('confirmOverlay').classList.add('open');
+}
+$('confirmCancel').addEventListener('click',function(){$('confirmOverlay').classList.remove('open')});
+$('confirmAction').addEventListener('click',function(){$('confirmOverlay').classList.remove('open');if(confirmCb)confirmCb()});
+
+// Filter chips
+document.querySelectorAll('.fchip').forEach(function(chip){
+  chip.addEventListener('click',function(){
+    var f=chip.getAttribute('data-filter');
+    if(f==='date'){toast('Opening calendar...');return}
+    if(f==='categories'){
+      chip.classList.toggle('active');
+      if(chip.classList.contains('active')){chip.textContent='Categories (All) ▾';toast('Showing category selector...')}
+      else{chip.textContent='Categories ▾'}
+      return;
+    }
+    if(f==='goalstatus'){
+      chip.classList.toggle('active');
+      if(chip.classList.contains('active')){chip.textContent='Goal: Met ▾';toast('Showing goal status selector...')}
+      else{chip.textContent='Goal Status ▾'}
+      return;
+    }
+    if(f==='conditions'){
+      chip.classList.toggle('active');
+      activeFilter=chip.classList.contains('active')?'conditions':'all';
+      renderContent();
+      return;
+    }
+  });
+});
+
+// Search
+$('searchBtn').addEventListener('click',function(){
+  $('searchBarEl').classList.toggle('open');
+  if($('searchBarEl').classList.contains('open'))$('searchBarEl').querySelector('input').focus();
+});
+
+// Advanced filters
+$('filterAdvBtn').addEventListener('click',function(){toast('Opening advanced filters...')});
+
+// Scroll to top
+var bookCt=$('bookContent');
+bookCt.addEventListener('scroll',function(){
+  $('scrollTop').classList.toggle('visible',bookCt.scrollTop>400);
+});
+$('scrollTop').addEventListener('click',function(){bookCt.scrollTo({top:0,behavior:'smooth'})});
+
+// Close menus on body click
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.lp-menu')&&!e.target.closest('.entry-card'))closeMenu();
+});
+
+function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');setTimeout(function(){e.classList.remove('show')},3000)}
+
+// Init
+initAppBar();
+renderContent();
+
+})();
+</script>
+</body>
+</html>
