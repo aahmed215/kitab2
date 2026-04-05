@@ -2356,7 +2356,7 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 
 ## 11. Database Schema
 
-### 8.1 Cloud Schema (Supabase — PostgreSQL)
+### 11.1 Cloud Schema (Supabase — PostgreSQL)
 
 #### users
 | Column | Type | Notes |
@@ -2368,7 +2368,7 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | bio | Text | |
 | birthday | Date | For birthday greeting |
 | timezone | Text | User's preferred timezone |
-| settings | JSONB | All app settings: theme, hijri on/off, islamic personalization, week start day, date format, hijri calc method, hijri day advancement (sunset/midnight), location source, notification preferences, etc. |
+| settings | JSONB | All app settings: theme, hijri on/off, islamic personalization, week start day, date format, time format, timezone display, hijri calc method, hijri day advancement, notification preferences, etc. |
 | created_at | Timestamp (UTC) | |
 | updated_at | Timestamp (UTC) | |
 
@@ -2377,7 +2377,7 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 |--------|------|-------|
 | id | UUID | Primary key |
 | user_id | UUID | FK → users |
-| name | Text | |
+| name | Text | **UNIQUE per user (case-insensitive).** Constraint: `UNIQUE(user_id, LOWER(name))` |
 | icon | Text | Emoji |
 | color | Text | Hex code |
 | sort_order | Integer | For user-defined ordering |
@@ -2390,31 +2390,39 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | id | UUID | Primary key |
 | user_id | UUID | FK → users |
 | category_id | UUID | FK → categories |
-| name | Text | Unique per user |
+| name | Text | **UNIQUE per user (case-insensitive).** Constraint: `UNIQUE(user_id, LOWER(name))` |
 | description | Text | |
 | is_archived | Boolean | Default false |
 | schedule | JSONB | Null if no schedule. Versioned: `{ "versions": [{ "effective_from", "effective_to", "config": { calendar_type, start_date, end_date, repeat_type, repeat_config, expected_entries, time_window } }] }` |
 | fields | JSONB | Array of field definitions: `[{ id, type, label, unit, config, sort_order }]` |
-| goals | JSONB | Versioned: `{ "versions": [{ "effective_from", "effective_to", "goals": [{ id, mode, field_id, scope, scope_count, scope_unit, aggregation, comparison, target, target_to, target_type, consistency }] }] }` |
+| goals | JSONB | Versioned: `{ "versions": [{ "effective_from", "effective_to", "goals": [{ id, mode, field_id, scope, scope_count, scope_unit, aggregation, comparison, target, target_to, target_type, consistency, is_primary }] }] }` |
+| primary_goal_id | Text | Which goal ID (inside goals JSONB) is the primary goal |
 | created_at | Timestamp (UTC) | |
 | updated_at | Timestamp (UTC) | |
 
 **JSONB rationale:** Schedule, fields, and goals are complex nested structures that vary per activity. They are always read/written as a whole unit (the user saves the entire template at once). JSONB avoids excessive joins while still supporting PostgreSQL indexing for queries.
 
-#### entries (activity logs)
+**Periods** are not stored in any table. They are computed on-the-fly by the period engine from the schedule JSONB. Periods for a single activity template never overlap — the schedule configuration guarantees this.
+
+**Goals** are stored inside the `goals` JSONB, each with an internal UUID string as its ID. Goal IDs are referenced by `goal_period_statuses.goal_id`.
+
+**Schedule/Goal versioning:** When a user changes a schedule or goals and chooses "apply to future only," a new version is appended to the versions array. When they choose "apply retroactively," the array collapses to a single version with the new config, and all related period/goal statuses are deleted and recomputed.
+
+#### entries (activity records)
 | Column | Type | Notes |
 |--------|------|-------|
 | id | UUID | Primary key |
 | user_id | UUID | FK → users |
-| activity_id | UUID | Nullable FK → activities. Null = quick entry (Layer 1) |
-| period_start | Timestamp (UTC) | Nullable. Frozen period start at time of linkage (Layer 2) |
-| period_end | Timestamp (UTC) | Nullable. Frozen period end at time of linkage (Layer 2) |
-| link_type | Text | 'explicit' or null (for quick entries) |
+| name | Text | **Required.** Display name. If linked to a template, set to the template's name at creation (stored independently so entry is self-contained if template is renamed or unlinked). For ad-hoc entries, whatever the user typed or "Untitled". **No uniqueness constraint** — multiple entries can share the same name. |
+| activity_id | UUID | Nullable FK → activities. Null = ad-hoc/quick entry (Layer 1 link) |
+| period_start | Timestamp (UTC) | Nullable. Frozen period start at time of linkage (Layer 2 link) |
+| period_end | Timestamp (UTC) | Nullable. Frozen period end at time of linkage |
+| link_type | Text | 'explicit' or null |
 | field_values | JSONB | Key-value pairs: `{ field_id: value }`. Values in native types. |
-| notes | Text | Default notes field (always available) |
-| timer_segments | JSONB | Nullable. Only set for timer-based entries. Array of segments: `[{ "start": "UTC timestamp", "end": "UTC timestamp" }]`. Total active time = sum of segment durations. Total idle time = sum of gaps. Activity start = first segment start. Activity end = last segment end. If last action was pause then stop, idle time between last pause and stop is discarded. |
+| timer_segments | JSONB | Nullable. Array of segments: `[{ "start": "UTC timestamp", "end": "UTC timestamp" }]`. Total active time = sum of segment durations. Total idle time = sum of gaps. Activity start = first segment start. Activity end = last segment end. If last action was pause then stop, idle time between last pause and stop is discarded. |
+| notes | Text | Default notes field (always available on every entry) |
 | logged_at | Timestamp (UTC) | When the activity occurred (user's intended time, may be retroactive) |
-| created_at | Timestamp (UTC) | System timestamp of record creation |
+| created_at | Timestamp (UTC) | System timestamp |
 | updated_at | Timestamp (UTC) | |
 
 #### activity_period_statuses
@@ -2431,7 +2439,15 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | created_at | Timestamp (UTC) | |
 | updated_at | Timestamp (UTC) | |
 
-**'pending' rows** are created proactively when the period engine detects unaddressed past periods. This makes querying for pending items a simple database lookup instead of expensive period recomputation.
+**Uniqueness:** `UNIQUE(user_id, activity_id, period_start, period_end)` — one status per activity per period.
+
+**How statuses are set:**
+- **'pending'** — created proactively by the period engine when a past period has no linked entries and no status
+- **'completed'** — set automatically when an entry is linked to the period
+- **'missed'** — set by user action ("Mark as Missed")
+- **'excused'** — set by user action ("Add Reason"), links to a condition record
+
+**'completed' and 'pending' are system-computed.** 'missed' and 'excused' are **user decisions.** This distinction matters for sync conflict resolution — user decisions are preserved during merge, system-computed statuses are recomputed from merged entry data.
 
 #### goal_period_statuses
 | Column | Type | Notes |
@@ -2439,8 +2455,8 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | id | UUID | Primary key |
 | user_id | UUID | FK → users |
 | activity_id | UUID | FK → activities |
-| goal_id | Text | The goal's ID within the activity's goals JSONB |
-| period_start | Timestamp (UTC) | Frozen period boundaries (matches activity_period_statuses) |
+| goal_id | Text | Matches a goal ID inside activities.goals JSONB |
+| period_start | Timestamp (UTC) | Frozen period boundaries |
 | period_end | Timestamp (UTC) | |
 | status | Text | 'met', 'not_met', 'excused' |
 | condition_id | UUID | Nullable FK → conditions. Set when status = 'excused' |
@@ -2448,29 +2464,47 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | created_at | Timestamp (UTC) | |
 | updated_at | Timestamp (UTC) | |
 
-**Goal status rows** are created when an entry is linked to a period and goals are evaluated. If the period is excused or missed at the period level, no goal status rows are created — goals inherit the period's status. Goal statuses only exist when the period status is 'completed'.
+**Uniqueness:** `UNIQUE(user_id, activity_id, goal_id, period_start, period_end)` — one status per goal per period.
 
-#### conditions
-| Column | Type | Notes |
-|--------|------|-------|
-| id | UUID | Primary key |
-| user_id | UUID | FK → users |
-| preset_id | UUID | Nullable FK → condition_presets |
-| label | Text | "Traveling", "Sick", custom text |
-| emoji | Text | |
-| start_date | Date | Day-level granularity |
-| end_date | Date | Nullable. Null = active/ongoing |
-| created_at | Timestamp (UTC) | |
-| updated_at | Timestamp (UTC) | |
+**Only created when the period status is 'completed'** (an entry exists). If the period is excused or missed, goals inherit that status — no goal status rows are created.
+
+**'met' and 'not_met' are system-computed** by the goal engine. **'excused' is a user decision.** Same distinction as period statuses for sync purposes.
 
 #### condition_presets
 | Column | Type | Notes |
 |--------|------|-------|
 | id | UUID | Primary key |
 | user_id | UUID | FK → users |
-| label | Text | "Sick", "Traveling", "Injured", etc. |
+| label | Text | **UNIQUE per user (case-insensitive).** Constraint: `UNIQUE(user_id, LOWER(label))` |
 | emoji | Text | |
 | is_system | Boolean | True for built-in defaults, false for user-created |
+| created_at | Timestamp (UTC) | |
+
+#### conditions (actual condition instances)
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID | Primary key |
+| user_id | UUID | FK → users |
+| preset_id | UUID | FK → condition_presets |
+| label | Text | Inherited from preset at creation |
+| emoji | Text | Inherited from preset |
+| start_date | Date | Day-level granularity |
+| end_date | Date | Nullable. Null = active/ongoing |
+| created_at | Timestamp (UTC) | |
+| updated_at | Timestamp (UTC) | |
+
+**Non-overlap rule:** For the same user + same `preset_id`, date ranges **cannot overlap.** If "Sick" spans March 20 – April 2, another "Sick" cannot span March 31 – April 4. Enforced at the application level. No uniqueness on label — multiple "Sick" instances can exist over time, they just can't overlap.
+
+#### notifications
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID | Primary key |
+| user_id | UUID | FK → users |
+| type | Text | 'streak_risk', 'streak_milestone', 'reminder', 'friend_request', 'competition_invite', 'competition_update', 'sync_issue', 'condition_reminder' |
+| title | Text | Headline |
+| description | Text | Detail text |
+| action_type | Text | Nullable. 'navigate_activity', 'navigate_social', 'navigate_competition', 'trigger_sync', etc. |
+| action_data | JSONB | Nullable. Data for the action: activity_id, competition_id, etc. |
 | created_at | Timestamp (UTC) | |
 
 #### friends
@@ -2482,6 +2516,8 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | status | Text | 'pending', 'accepted', 'declined' |
 | created_at | Timestamp (UTC) | |
 | updated_at | Timestamp (UTC) | |
+
+**Uniqueness:** One relationship per user pair. `UNIQUE(user_id, friend_id)`
 
 #### activity_shares
 | Column | Type | Notes |
@@ -2498,7 +2534,7 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | id | UUID | Primary key |
 | creator_id | UUID | FK → users |
 | name | Text | |
-| activity_config | JSONB | Shared activity configuration (same structure as activities.fields + schedule) |
+| activity_config | JSONB | Shared activity configuration |
 | rules | JSONB | Leaderboard configs, duration, scoring |
 | visibility | Text | 'public' or 'private' |
 | status | Text | 'upcoming', 'active', 'completed' |
@@ -2515,6 +2551,8 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | user_id | UUID | FK → users |
 | joined_at | Timestamp (UTC) | |
 
+**Uniqueness:** `UNIQUE(competition_id, user_id)` — one participation per user per competition.
+
 #### competition_entries
 | Column | Type | Notes |
 |--------|------|-------|
@@ -2525,9 +2563,34 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | logged_at | Timestamp (UTC) | |
 | created_at | Timestamp (UTC) | |
 
-### 8.2 Local Schema (Drift / SQLite — Native Devices Only)
+### 11.2 Relationship Diagram
 
-The local schema **mirrors the cloud schema exactly** — same tables, same columns. This makes sync straightforward: rows are the same shape in both databases.
+```
+users
+ ├── 1:many → categories (UNIQUE name per user)
+ │                └── 1:many → activities (UNIQUE name per user)
+ │                                 ├── 1:many → entries (name stored independently, no uniqueness)
+ │                                 ├── 1:many → activity_period_statuses (UNIQUE per activity+period)
+ │                                 │               └── references → conditions
+ │                                 └── 1:many → goal_period_statuses (UNIQUE per activity+goal+period)
+ │                                                 └── references → conditions
+ │
+ │                [goals live inside activities.goals JSONB, each with internal UUID]
+ │                [periods are computed on-the-fly, never stored]
+ │
+ ├── 1:many → condition_presets (UNIQUE label per user)
+ │                └── 1:many → conditions (non-overlapping per preset)
+ │
+ ├── 1:many → notifications
+ ├── 1:many → friends (UNIQUE per user pair)
+ ├── 1:many → activity_shares
+ ├── 1:many → competition_participants (UNIQUE per user+competition)
+ └── settings (1:1, stored in users.settings JSONB)
+```
+
+### 11.3 Local Schema (Drift / SQLite — Native Devices Only)
+
+The local schema **mirrors the cloud schema exactly** — same tables, same columns, same constraints. This makes sync straightforward: rows are the same shape in both databases.
 
 **Additional local-only tables:**
 
@@ -3303,3 +3366,1050 @@ CTA button opens the expanded entry form. FAB is also available.
 #### FAB
 
 Always visible, same position and behavior as all other screens. See §6.
+
+### 13.4 Profile Screen
+
+The Profile screen is the user's identity and the central hub for all app configuration. It combines the user's profile with all settings, organized by category.
+
+#### Navigation Icon
+
+The Profile tab icon in the bottom nav / icon rail follows this priority:
+1. **Profile photo** — circular cutoff of uploaded photo (if exists)
+2. **First name initial** — uppercase letter in a circle with Primary color background, white text (if signed in but no photo)
+3. **Generic person icon** — Phosphor User (if not signed in)
+
+#### App Bar
+
+```
+Profile                     [⚙]
+```
+
+- **Left:** "Profile" in DM Serif Display (H1)
+- **Right:** Optional gear icon — could be removed since the entire screen IS settings. Keeping it clean with just the title may be better. No gear icon.
+
+Actually — no gear icon. The screen is already settings. Just the title.
+
+```
+Profile
+```
+
+#### Section 1 — Profile Card
+
+**Signed in:**
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│         [Avatar circle]             │
+│            56px                     │
+│                                     │
+│         Ahmed Al-Ahmed              │
+│         ahmed@email.com             │
+│         Kitab user since Apr 2026   │
+│                                     │
+│         [Edit Profile]              │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+- Avatar: profile photo in circle (56px), or first name initial (Primary bg, white text)
+- Full name (H2, DM Serif Display)
+- Email (Body Small, gray)
+- Member since date (Caption, gray)
+- "Edit Profile" secondary button → opens Edit Profile sub-screen
+
+**Edit Profile sub-screen:**
+- Back button + "Edit Profile" title + "Save" button
+- Avatar with camera overlay icon (tap to change photo — take photo or choose from gallery)
+- Name field (editable)
+- Bio field (multiline, optional, max 150 characters)
+- Birthday (date picker — used for birthday greeting)
+- Email (editable, requires verification if changed)
+
+**Not signed in (Guest):**
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│      [Generic user icon circle]     │
+│               48px                  │
+│                                     │
+│             Guest                   │
+│                                     │
+│   Your data is stored on this       │
+│   device only. Create an account    │
+│   to sync, back up, and access      │
+│   social features.                  │
+│                                     │
+│       [Create Account]              │
+│          Sign In                    │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+- Generic Phosphor User icon in a circle (Gray 300 background)
+- "Guest" as the display name (Body Large, gray)
+- Brief value proposition — informational, not pushy
+- "Create Account" — primary button
+- "Sign In" — text button below for returning users
+- No badge, no warning indicator — the card messaging is enough
+
+#### Section 2 — My Activities
+
+```
+┌─────────────────────────────────────┐
+│ 📋  My Activities                 › │
+│     12 activities · 4 categories    │
+└─────────────────────────────────────┘
+```
+
+Tapping opens a sub-screen:
+
+**My Activities sub-screen:**
+- Back button + "My Activities" title + [+ New Activity] button
+- **Tab bar:** Activities | Categories
+- **Activities tab:**
+  - List of all activity templates grouped by category
+  - Each row: category color dot + activity name + schedule summary ("Daily", "3x/week", "No schedule") + chevron
+  - Tap → opens the **Activity Detail View** (see below)
+  - Swipe left → archive (not delete — preserves historical data)
+  - Long press → options: View, Edit, Duplicate, Archive, Delete (with confirmation warning about losing all linked entries)
+  - Archived activities shown at the bottom in a collapsible "Archived" section (grayed out)
+
+**Activity Detail View:**
+
+When the user taps an activity template, they land on a read-only detail view — not directly into edit mode. This is the complete picture of one activity's performance.
+
+```
+┌─────────────────────────────────────┐
+│ ‹ Back          Morning Run    [✎]  │
+│ 🏃 Health & Fitness                 │
+├─────────────────────────────────────┤
+│                                     │
+│ ── Overview ──                      │
+│                                     │
+│ 🔥 14 day streak    Best: 21 days   │
+│ 85% all-time completion rate        │
+│                                     │
+│ ── Goals ──                         │
+│                                     │
+│ Run ≥ 5 km per day                  │
+│ 🔥 14d streak · 85% all-time        │
+│                                     │
+│ Duration ≥ 30 min per day           │
+│ 🔥 18d streak · 92% all-time        │
+│                                     │
+│ ── History ──                       │
+│                                     │
+│ [All] [Met] [Missed] [Excused] [?]  │
+│                                     │
+│ Today, Apr 3         ○ In progress  │
+│   No entries yet                    │
+│                                     │
+│ Yesterday, Apr 2     ✓ Met          │
+│   7:30 AM · 40 min · 6.2 km        │
+│                                     │
+│ Monday, Mar 31       ✓ Met          │
+│   8:00 AM · 35 min · 5.1 km        │
+│                                     │
+│ Sunday, Mar 30       ⊘ Excused      │
+│   Traveling                         │
+│                                     │
+│ Saturday, Mar 29     — Missed       │
+│   (no entry)                        │
+│                                     │
+│ Friday, Mar 28       ✓ Met          │
+│   7:45 AM · 38 min · 5.8 km        │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+**App bar:**
+- Back button (‹) → returns to My Activities list
+- Activity name as title
+- Edit button (✎) → opens the activity template form (§5.8) in edit mode
+
+**Category line:** Category icon + name displayed below the activity name.
+
+**Overview section:**
+- Primary goal's current streak + best-ever streak
+- Primary goal's all-time completion rate (percentage of all finalized scheduled occurrences where the primary goal was met)
+
+**Goals section:**
+- Lists all goals (primary goal first, but no "Primary"/"Secondary" labels — just listed by goal description)
+- Each goal shows: plain-language description, current streak, all-time completion rate
+- Tapping a goal could expand to show more detail (streak history, recent pass/fail) — future enhancement
+
+**History section:**
+- Chronological list of every scheduled occurrence for this activity, newest first
+- The word "period" is never used in the UI — each row is just a date + status
+- **Filter chips:** All (default), Met, Missed, Excused, Pending (shown as ?)
+- Infinite scroll for activities with long histories
+
+**Each history row shows:**
+
+| Status | Display |
+|--------|---------|
+| ○ In progress | Date + "In progress" + partial progress if applicable ("3/5 km so far") |
+| ✓ Met | Date + "Met" + key metric values from the linked entry (time, duration, primary metrics) |
+| ⊘ Excused | Date + "Excused" + condition/reason name |
+| — Missed | Date + "Missed" + "(no entry)" |
+| ? Pending | Date + "Pending" + "(no entry)" |
+
+**Row interactions:**
+- **Tap a row with a linked entry (✓):** Opens the expanded entry form in edit mode for that entry
+- **Tap a row with no entry (? Pending, — Missed):** Opens the action bottom sheet: Record Activity (pre-linked to this activity + this date's occurrence), Link Activity, Mark as Missed, Add Reason
+- **Tap an excused row (⊘):** Opens condition detail / option to change reason or undo excuse
+
+**Activities without a schedule:** The Overview shows goal status (met/not met as standing target, no streak). Goals section shows all goals with current status. History section is replaced by a simple list of all linked entries in reverse chronological order (no occurrence structure since there's no schedule).
+
+**Tablet/Desktop adaptation:** Same master-detail pattern — My Activities list on the left, Activity Detail View on the right. Edit button opens the template form in the right panel.
+- **Categories tab:**
+  - List of categories with icon, color, name, activity count
+  - Tap → edit (name, icon, color)
+  - Drag to reorder
+  - Swipe left → delete (with confirmation if activities exist: "Move X activities to which category?")
+  - [+ New Category] button at the bottom
+
+#### Section 3 — Calendar & Date
+
+```
+┌─────────────────────────────────────┐
+│ 📅  Calendar & Date               › │
+└─────────────────────────────────────┘
+```
+
+Tapping opens a sub-screen with the following settings:
+
+| Setting | Type | Default | Options |
+|---------|------|---------|---------|
+| Show Hijri calendar | Toggle | Off | On/Off |
+| Islamic personalization | Toggle | Off | On/Off — controls Islamic greetings, Eid/Ramadan/Jumu'ah awareness |
+| Hijri calculation method | Dropdown | Umm al-Qura | Umm al-Qura, Astronomical, Tabular, etc. (only visible if Hijri is on) |
+| Hijri day advancement | Dropdown | At sunset | At sunset, At midnight (only visible if Hijri is on) |
+| Manual Hijri adjustment | Stepper | 0 | -1, 0, +1 days (only visible if Hijri is on) |
+| Date format | Dropdown | Written short | MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD, Written short (Apr 2, 2026), Written long (2 April 2026) |
+| Time format | Radio | 12-hour | 12-hour (8:00 AM), 24-hour (20:00) |
+| Timezone display | Radio | Abbreviation | Abbreviation (EDT), UTC offset (-05:00) |
+| Default timezone | Dropdown | Auto-detect | Auto-detect from device, or manual city/timezone selection |
+| Week start day | Dropdown | Sunday | Sunday, Monday, Saturday |
+
+Settings that depend on others (e.g., Hijri calculation method only visible when Hijri is on) appear/disappear with smooth animation.
+
+#### Section 4 — Appearance
+
+```
+┌─────────────────────────────────────┐
+│ 🎨  Appearance                    › │
+└─────────────────────────────────────┘
+```
+
+Tapping opens a sub-screen:
+
+| Setting | Type | Default | Options |
+|---------|------|---------|---------|
+| Theme | Segmented control | System Auto | Light, Dark, System Auto |
+
+Preview of the selected theme shown below the control. Minimal for V1 — can expand with accent color options, font size, display density in future versions.
+
+#### Section 5 — Notifications
+
+```
+┌─────────────────────────────────────┐
+│ 🔔  Notifications                 › │
+└─────────────────────────────────────┘
+```
+
+Tapping opens a sub-screen:
+
+| Setting | Type | Default | Notes |
+|---------|------|---------|-------|
+| Streak at risk | Toggle | On | Notifies when a pending activity could break a streak |
+| Streak milestones | Toggle | On | Celebrates milestone streaks (7, 14, 21, 30, etc.) |
+| Reminders to log | Toggle | On | |
+| Reminder time | Time picker | 9:00 PM | "Remind me at this time if I have pending activities" (only visible if reminders on) |
+| Friend requests | Toggle | On | |
+| Competition updates | Toggle | On | |
+| Condition reminders | Toggle | On | Reminds if a condition has been active for a while |
+| Condition reminder interval | Dropdown | 7 days | "Remind me every X days" (only visible if condition reminders on) |
+| Sync issues | Label | Always on | Shown as non-toggleable with explanation: "You'll always be notified about sync problems" |
+
+If push notification permissions are not granted (native), a banner at the top of this sub-screen: "Notifications are disabled in your device settings. [Open Settings]"
+
+#### Section 6 — Privacy & Sharing
+
+```
+┌─────────────────────────────────────┐
+│ 🔒  Privacy & Sharing             › │
+└─────────────────────────────────────┘
+```
+
+Tapping opens a sub-screen:
+
+| Setting | Type | Default | Options |
+|---------|------|---------|---------|
+| Default sharing for new activities | Dropdown | Private | Private, Specific Friends, All Friends |
+| Profile visibility | Dropdown | Friends only | Friends only, Anyone on Kitab, Nobody |
+| Competition invites | Dropdown | Friends only | Friends only, Anyone on Kitab |
+| Per-activity sharing | Link | — | "Manage sharing per activity →" navigates to My Activities |
+
+#### Section 7 — Conditions
+
+```
+┌─────────────────────────────────────┐
+│ 🏷️  Condition Presets             › │
+└─────────────────────────────────────┘
+```
+
+Tapping opens a sub-screen:
+
+- List of all condition presets (system + user-created)
+- System presets: 🤒 Sick, ✈️ Traveling, 🤕 Injured, 😴 Rest Day, 🩸 Menstrual, 🕊️ Bereavement
+- System presets cannot be deleted but can be hidden (toggle visibility)
+- User-created presets: editable (name, emoji), deletable
+- [+ New Preset] button at the bottom
+- Each preset shows how many times it's been used: "Used 3 times"
+- Reorder via drag
+
+#### Section 8 — Data & Storage
+
+```
+┌─────────────────────────────────────┐
+│ 💾  Data & Storage                 › │
+└─────────────────────────────────────┘
+```
+
+Tapping opens a sub-screen:
+
+| Setting | Type | Notes |
+|---------|------|-------|
+| Export data | Button | Opens the Export Data sub-screen (see below) |
+| Import data | Button | Opens the Import Data flow (see below) |
+| Favorite locations | Sub-screen | Manage saved locations for the Location field type. Add (current GPS / search / pin on map), rename, reorder, delete. Each shows name + address + mini map. |
+| Local storage usage | Display | "Using 45 MB on this device" (native only) |
+| Clear local cache | Button | Clears cached data (not entries — just temporary cache). Confirmation required. Native only. |
+
+**Export Data sub-screen:**
+
+```
+┌─────────────────────────────────────┐
+│ ‹ Back       Export Data            │
+├─────────────────────────────────────┤
+│                                     │
+│ Export your Kitab data for backup    │
+│ or analysis.                        │
+│                                     │
+│ ── What to Export ──                │
+│                                     │
+│ ○ All data (recommended)            │
+│ ○ Specific activities               │
+│   └ [Select activities...]          │
+│                                     │
+│ ── Date Range ──                    │
+│                                     │
+│ ○ All time                          │
+│ ○ Custom range                      │
+│   └ [Start date] to [End date]      │
+│                                     │
+│ ── Format ──                        │
+│                                     │
+│ ○ JSON (single file, full detail)   │
+│ ○ CSV (zip of spreadsheets)         │
+│                                     │
+│        [Export]                      │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+**What to Export:**
+- **All data (default):** Exports everything — entries, activity templates, categories, conditions, goals, streaks
+- **Specific activities:** Opens a multi-select list of activity templates. Only exports entries and configuration for selected activities, plus their categories and any conditions referenced by excused entries.
+
+**Date Range:**
+- **All time (default):** Exports all entries regardless of date
+- **Custom range:** Start and end date pickers (using KitabDateTimePicker date component). Only entries within the range are exported. Activity templates, categories, and conditions are always included in full regardless of date range.
+
+**Format:**
+- **JSON:** Single `.json` file. Preserves full data structure including nested relationships (entries within activities, goals within templates, segments within timer entries). Best for backup and re-importing into Kitab.
+- **CSV:** `.zip` file containing multiple `.csv` spreadsheets: `entries.csv`, `activities.csv`, `categories.csv`, `conditions.csv`, `goals.csv`. Relationships expressed via ID columns. Best for spreadsheet analysis.
+
+**Export flow:**
+1. User selects options and taps Export
+2. Progress indicator: "Preparing your export..." with a progress bar (for large datasets)
+3. On completion: native devices open the system share sheet (save to Files, AirDrop, etc.). Web triggers a browser download.
+4. Toast: "Export complete"
+
+**No previous export history.** Each export is generated fresh. No stored files.
+
+**V2 enhancements:** Auto-scheduled exports (monthly to cloud storage), email delivery option.
+
+**Import Data flow:**
+
+```
+┌─────────────────────────────────────┐
+│ ‹ Back       Import Data            │
+├─────────────────────────────────────┤
+│                                     │
+│ Restore data from a Kitab backup.   │
+│                                     │
+│ Only Kitab JSON format is           │
+│ supported.                          │
+│                                     │
+│        [Select File]                │
+│                                     │
+│ ⚠ Importing will merge with your    │
+│ existing data. Duplicates are       │
+│ resolved using last-write-wins      │
+│ (most recent timestamp kept).       │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+**Import rules:**
+- Only Kitab's own JSON format is supported (the same format produced by Export)
+- CSV import is not supported (too ambiguous without schema context)
+- Import **merges** with existing data — it does not replace. Same conflict resolution as the sync engine: last-write-wins based on `updated_at` timestamps.
+- If an imported record has the same ID as an existing record, the one with the more recent `updated_at` wins
+- If an imported record has a new ID, it's inserted as new data
+- Progress indicator during import with record count: "Importing... 245 of 1,203 records"
+- On completion: toast "Import complete. X new records added, Y records updated."
+- Confirmation before starting: "Import X records? This will merge with your existing data. [Cancel] [Import]"
+
+#### Section 9 — Account
+
+```
+┌─────────────────────────────────────┐
+│ 👤  Account                       › │
+└─────────────────────────────────────┘
+```
+
+**If signed in:**
+
+| Setting | Type | Notes |
+|---------|------|-------|
+| Email | Display + Edit | Shows current email. Tap to change (requires verification). |
+| Change password | Button | Opens change password flow |
+| Sign out | Button | Confirmation: "Sign out? Your data is saved in the cloud." |
+| Delete account | Button (danger) | Serious confirmation flow: warning text explaining consequences + type "DELETE" to confirm. Deletes all cloud data. Local data on current device is preserved unless user explicitly clears it. |
+
+**If not signed in:**
+- "Create Account" and "Sign In" buttons (same as profile card — redundant access point)
+- Explanation: "Creating an account enables cloud sync, backup, and social features."
+
+#### Section 10 — About
+
+```
+┌─────────────────────────────────────┐
+│ ℹ️  About                         › │
+└─────────────────────────────────────┘
+```
+
+| Item | Type |
+|------|------|
+| App version | Display ("Kitab v1.0.0 (build 42)") |
+| Terms of service | Link (opens in-app browser or external) |
+| Privacy policy | Link |
+| Open source licenses | Sub-screen listing all packages and their licenses |
+| Contact / Feedback | Link (opens email or feedback form) |
+| Rate Kitab | Link (opens App Store / Play Store review page) |
+
+#### Visual Layout
+
+The Profile screen is a single scrollable column. Sections are separated by spacing (xl, 24px) and optional thin dividers.
+
+Each settings group is a **tappable row** with:
+- Left: icon + label
+- Right: chevron (›) indicating it opens a sub-screen
+- Subtle elevation (Level 1 shadow) or just a clean flat card with border
+
+The profile card at the top has slightly more prominence — subtle geometric pattern background (same as Home summary card, very low opacity).
+
+#### Responsive Layout
+
+**Phone (< 600px):** Single column, full width. Each settings group opens as a full-screen sub-page with back button.
+
+**Tablet (600–1024px):** Master-detail. Left: settings list (40%). Right: the selected settings sub-screen content (60%). Tapping a group in the left panel loads its content in the right panel.
+
+**Web desktop (> 1024px):** Same master-detail as tablet, with icon rail on the far left.
+
+#### FAB
+
+Always visible on this screen. Same behavior as all other screens. See §6.
+
+---
+
+## 14. Authentication Flow
+
+### 14.1 Account States
+
+| State | Where | Capabilities |
+|-------|-------|-------------|
+| Anonymous (Guest) | Native only | Full local functionality. No cloud sync, no social features, no web access. |
+| Signed in | Native + Web | Full functionality. Cloud sync, social, cross-device access. |
+| Signed out (with preserved data) | Native only | App reverts to anonymous mode with last-synced data preserved locally. User can view and edit. On sign-back-in, local changes merge with cloud. |
+
+### 14.2 First Launch (Native)
+
+No sign-up screen, no login wall. The user lands directly on the onboarding flow (or Home screen empty state if onboarding is skipped). The app generates a local anonymous user ID. All data stored in local SQLite. Profile screen shows the Guest card.
+
+**Unavailable features for anonymous users:**
+- Cloud sync / backup
+- Social features (friends, sharing, competitions)
+- Web app access
+
+### 14.3 Create Account
+
+Accessible from: Profile card "Create Account" button, or any prompt where an account is needed (e.g., tapping Social tab).
+
+**Screen 1 — Create Account:**
+
+```
+┌─────────────────────────────────────┐
+│             Create your             │
+│               Kitab                 │
+│                                     │
+│ Name                                │
+│ [________________________]          │
+│                                     │
+│ Email                               │
+│ [________________________]          │
+│                                     │
+│ Password                            │
+│ [••••••••____________] [👁]         │
+│                                     │
+│ Confirm Password                    │
+│ [••••••••____________] [👁]         │
+│                                     │
+│       [Create Account]              │
+│                                     │
+│ Already have an account? Sign In    │
+│                                     │
+│ ── or continue with ──              │
+│ [G Google]  [ Apple]               │
+└─────────────────────────────────────┘
+```
+
+**Fields:**
+- Name: required
+- Email: required, valid format
+- Password: minimum 8 characters, no complexity requirements. Eye icon toggles visibility.
+- Confirm password: must match
+
+**Social sign-in:** Google and Apple. Both supported via Supabase Auth. One tap — pulls name and email from the social provider. Skips email verification (already verified by Google/Apple).
+
+**Screen 2 — Email Verification (OTP):**
+
+```
+┌─────────────────────────────────────┐
+│          Verify your email          │
+│                                     │
+│ We sent an 8-digit code to          │
+│ ahmed@email.com                     │
+│                                     │
+│ ┌──┬──┬──┬──┬──┬──┬──┬──┐         │
+│ │  │  │  │  │  │  │  │  │         │
+│ └──┴──┴──┴──┴──┴──┴──┴──┘         │
+│                                     │
+│ Didn't receive it? Resend           │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+- 8-digit OTP code sent via Resend (configured in Supabase)
+- Auto-advances as digits are entered
+- Verification is **required** — cannot proceed without it
+- "Resend" link with cooldown timer (60 seconds between resends)
+- On successful verification → proceed to data migration
+
+**Screen 3 — Data Migration (if anonymous data exists):**
+
+```
+┌─────────────────────────────────────┐
+│        Welcome, Ahmed!              │
+│                                     │
+│ Syncing your existing data to       │
+│ the cloud...                        │
+│                                     │
+│      [════════════70%═══]           │
+│      128 of 183 records             │
+│                                     │
+│ Your data will be backed up and     │
+│ accessible from any device.         │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+- Shows progress bar with record count
+- All local anonymous data gets the new user ID and pushes to Supabase
+- On completion: "Sync complete ✓" → navigates to Home screen
+- If no anonymous data existed: skip this screen, go directly to Home
+
+### 14.4 Sign In
+
+Accessible from: Profile card "Sign In" button, or any prompt where an account is needed.
+
+```
+┌─────────────────────────────────────┐
+│            Welcome back             │
+│                                     │
+│ Email                               │
+│ [________________________]          │
+│                                     │
+│ Password                            │
+│ [••••••••____________] [👁]         │
+│                                     │
+│       [Sign In]                     │
+│                                     │
+│ Forgot password?                    │
+│                                     │
+│ ── or continue with ──              │
+│ [G Google]  [ Apple]               │
+│                                     │
+│ Don't have an account? Create one   │
+└─────────────────────────────────────┘
+```
+
+**After sign-in on native with existing local anonymous data:**
+- Merge flow triggers (see §14.6 Sync Conflict Resolution)
+- Progress screen shown during merge
+
+**After sign-in on native with no local data:**
+- Cloud data pulls down to local SQLite
+- Progress: "Loading your data... X records"
+
+**After sign-in on web:**
+- No local data to consider. Data loads from Supabase directly.
+
+### 14.5 Forgot Password
+
+```
+┌─────────────────────────────────────┐
+│         Reset Password              │
+│                                     │
+│ Enter the email associated with     │
+│ your account.                       │
+│                                     │
+│ Email                               │
+│ [________________________]          │
+│                                     │
+│       [Send Reset Link]             │
+│                                     │
+│ Back to Sign In                     │
+└─────────────────────────────────────┘
+```
+
+- Sends a password reset link via Supabase Auth
+- Confirmation screen: "Check your email. We sent a reset link to a****@email.com"
+- "Resend" link with cooldown
+- Reset link opens a Supabase-hosted page for setting a new password
+
+### 14.6 Sync Conflict Resolution
+
+When data from two sources (local + cloud) must be merged, conflicts are resolved per data type:
+
+#### Conflict Resolution Rules
+
+| Data Type | Unique Constraint | Same ID Conflict | Different ID + Same Unique Key | No Overlap |
+|-----------|------------------|-----------------|-------------------------------|------------|
+| **Categories** | `UNIQUE(user_id, LOWER(name))` | Last-write-wins | Last-write-wins. Cascade: all `activities.category_id` referencing losing ID → updated to winner's ID. All entries under those activities inherit the winning category's icon/color. Losing record deleted. | Union |
+| **Activity templates** | `UNIQUE(user_id, LOWER(name))` | Last-write-wins (entire record including versioned schedule/goals) | **Ask user** which version to keep. All entries referencing losing ID → relinked to winner's ID. All period/goal statuses referencing losing ID → deleted and recomputed. Losing record deleted. | Union |
+| **Entries** | None | Last-write-wins | N/A | Union |
+| **Condition presets** | `UNIQUE(user_id, LOWER(label))` | Last-write-wins | Last-write-wins. All `conditions.preset_id` referencing losing ID → updated to winner's ID. Losing record deleted. | Union |
+| **Condition records** | Non-overlapping per preset | Last-write-wins | N/A | Union. If overlapping dates for same preset after merge: merge overlapping records into one (earliest start, latest end or null if either active). All period/goal statuses referencing losing condition ID → updated to winner's. |
+| **Period statuses** | `UNIQUE(activity_id, period_start, period_end)` | Last-write-wins | **Recomputed from entries.** User-set statuses (excused, missed) preserved. System-computed statuses (completed, pending) recomputed from merged entry data. | Union |
+| **Goal statuses** | `UNIQUE(activity_id, goal_id, period_start, period_end)` | Last-write-wins | **Recomputed from entries.** User-set excuses preserved. System-computed (met, not_met) recomputed from merged entries using winning template's goals. | Union |
+| **Settings / Profile** | One per user | Last-write-wins | N/A | N/A |
+| **Friends** | `UNIQUE(user_id, friend_id)` | Last-write-wins | Most advanced status wins (accepted > pending > declined) | Union |
+| **Activity shares** | Per activity + friend | Last-write-wins | Updated to winning template ID after template resolution | Union |
+| **Competitions** | `UNIQUE(competition_id, user_id)` for participation | Last-write-wins | N/A | Union |
+| **Competition entries** | None | Last-write-wins | N/A | Union |
+| **Notifications** | None | N/A | N/A | Clear all and regenerate |
+
+**Key distinction for period/goal statuses:** 'excused' and 'missed' are **user decisions** — the user deliberately set these. 'completed', 'pending', 'met', 'not_met' are **system-computed** from entry data. During merge, user decisions are preserved; system-computed statuses are recomputed from the merged entries to ensure accuracy.
+
+**Template versioning during merge:** If the winning template has versioned schedules/goals (from "apply to future only" changes), the version history is used as-is for period/goal recomputation. Old periods use the old version's config, new periods use the new version's config. If the losing template had applied retroactive changes (collapsed versions), that intent is lost — the winning template's structure takes precedence.
+
+**Template modified on both devices:** If the same template ID was edited on both devices (detected by comparing `updated_at` from both sources), an informational toast is shown after merge: "[Activity name] was edited on another device. Your latest changes were kept."
+
+#### Merge Algorithm — Execution Order
+
+Dependencies between tables require a specific merge order:
+
+```
+Step 1: Merge settings/profile (last-write-wins)
+Step 2: Merge categories (resolve name conflicts, cascade IDs to activities)
+Step 3: Merge condition presets (resolve label conflicts, cascade IDs to conditions)
+Step 4: Merge activities/templates
+        - Same ID: last-write-wins
+        - Different IDs, same name: ASK USER (pause merge for resolution)
+        - Cascade: relink entries, delete losing period/goal statuses
+Step 5: Merge condition records (resolve date overlaps within same preset, cascade IDs)
+Step 6: Merge entries (union + last-write-wins on same ID)
+Step 7: Recompute period statuses from merged entries
+        - Use winning template's schedule versions for period computation
+        - Preserve user-set statuses (excused, missed)
+        - Recompute system statuses (completed, pending) from entry data
+Step 8: Recompute goal statuses from merged entries
+        - Use winning template's goal versions for evaluation
+        - Preserve user-set excuses
+        - Recompute met/not_met from entry data
+Step 9: Merge friends (most advanced status wins for same user pair)
+Step 10: Merge activity shares (cascade to winning template IDs)
+Step 11: Merge competitions + participants + entries (union + last-write-wins)
+Step 12: Clear and regenerate notifications
+```
+
+Steps 7-8 are **recomputation, not merge** — they derive correct statuses from the merged data rather than trying to reconcile two possibly stale status sets.
+
+#### Template Conflict Resolution UI
+
+When duplicate activity template names are detected during merge (Step 4), the sync pauses and presents each conflict:
+
+```
+┌─────────────────────────────────────┐
+│       Resolve Duplicates            │
+│                                     │
+│ You have two versions of            │
+│ "Morning Run"                       │
+│                                     │
+│ ┌─────────────────────────────────┐ │
+│ │ Version A (this device)         │ │
+│ │ Daily · 3 fields · 2 goals     │ │
+│ │ 45 entries                      │ │
+│ │ Last edited: Apr 1, 2026       │ │
+│ │ Last record: Apr 3, 2026       │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│ ┌─────────────────────────────────┐ │
+│ │ Version B (cloud)               │ │
+│ │ Daily · 4 fields · 1 goal      │ │
+│ │ 12 entries                      │ │
+│ │ Last edited: Mar 28, 2026      │ │
+│ │ Last record: Mar 30, 2026      │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│ All entries from both versions      │
+│ will be linked to the one you       │
+│ choose.                             │
+│                                     │
+│   [Use Version A]  [Use Version B]  │
+└─────────────────────────────────────┘
+```
+
+**Each version shows:**
+- Source label ("this device" or "cloud")
+- Schedule summary (Daily, Weekly, etc.)
+- Field count + goal count
+- Entry count (how many entries are linked to this version)
+- Last edited (when the template configuration was last modified)
+- Last record (when the most recent entry linked to this template was logged)
+
+If multiple template conflicts exist, they are presented sequentially. After all are resolved, the merge continues from Step 5.
+
+**All other conflicts** (categories, condition presets, condition records, friends, etc.) are resolved silently — no user prompt needed.
+
+#### Merge Summary
+
+After merge completes:
+
+- **No conflicts:** Toast "Sync complete ✓"
+- **Silent merges happened:** Toast "Sync complete. X new records synced."
+- **Template conflicts were resolved:** Toast "Sync complete. Activities merged successfully."
+- **Template modified on both devices (same ID):** Toast "[Activity name] was edited on another device. Your latest changes were kept."
+
+### 14.7 Sign Out
+
+When the user signs out on a native device:
+- Local data from the last sync is **preserved** on the device
+- The app reverts to anonymous mode — user can continue viewing and editing local data
+- Profile screen shows the Guest card
+- Sync stops (no cloud connection)
+- If the user signs back in later, any local changes made while signed out are merged with cloud using the same conflict resolution rules (§14.6)
+
+On web: sign out redirects to the sign-in screen. No local data to preserve.
+
+### 14.8 Delete Account
+
+Specced in §13.4 Profile → Account:
+- Confirmation: type "DELETE"
+- All cloud data is permanently deleted
+- Local data on the current device is preserved (app reverts to anonymous mode)
+- If the user opens the app on another device that was signed in: auth error detected → "Your account has been deleted. Your local data is still available on this device." → revert to anonymous mode
+
+### 14.9 Change Email
+
+- User enters new email in Profile → Account
+- 8-digit OTP verification sent to the **new** email address
+- Email is only changed after successful verification
+- If verification is abandoned, the old email remains
+
+### 14.10 Web App — Account Required
+
+The web app shows a sign-in / create-account screen as the landing page. No anonymous mode on web. After authentication, data loads from Supabase directly (no local DB).
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│            [Kitab logo]             │
+│                                     │
+│     Your living book of deeds       │
+│                                     │
+│       [Sign In]                     │
+│       [Create Account]             │
+│                                     │
+│ ── or continue with ──              │
+│ [G Google]  [ Apple]               │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+---
+
+## 15. Security
+
+### 15.1 Database Security — Row Level Security (RLS)
+
+All Supabase tables have RLS enabled. No table is accessible without a valid policy. This is the primary defense against unauthorized data access.
+
+**Policy rules (see §11 for full RLS table):**
+- Users can only read, create, update, and delete their own records (`user_id = auth.uid()`)
+- Social tables (friends, activity_shares) have expanded read policies for accepted friends
+- Competition tables have read policies for all participants in the same competition
+- Public competitions are readable by any authenticated user
+- No anonymous access to cloud data — authentication required for all Supabase operations
+
+**Critical implementation rules:**
+- RLS policies are applied at the database level, not the application level — even if client code is bypassed, the database rejects unauthorized operations
+- Every new table MUST have RLS enabled before any data is inserted
+- RLS policies are tested with multiple user accounts during development to verify isolation
+
+### 15.2 Input Validation
+
+All user-provided text is validated on both client (Flutter) and server (Supabase/Postgres):
+
+| Field | Max Length | Validation |
+|-------|-----------|------------|
+| Activity name | 100 chars | Required. Trimmed. No leading/trailing whitespace. |
+| Category name | 50 chars | Required. Trimmed. Case-insensitive uniqueness check. |
+| Condition preset label | 50 chars | Required. Trimmed. Case-insensitive uniqueness check. |
+| Entry name | 100 chars | Required. Defaults to "Untitled" if empty. |
+| Description | 500 chars | Optional. |
+| Bio | 150 chars | Optional. |
+| Notes | 5,000 chars | Optional. |
+| Text field (custom metric) | 5,000 chars | Optional. |
+| User name | 100 chars | Required for account creation. |
+| Email | 254 chars | Valid email format. |
+| Password | 8–128 chars | Minimum 8 characters. |
+
+**Sanitization:**
+- All text is stored as plain text, never rendered as HTML. Flutter's Text widget does not interpret HTML, so XSS via rendered content is not a risk on native.
+- On web, any user-generated text displayed in the UI uses Flutter's text rendering (which escapes by default) — not raw HTML injection.
+- JSONB values (`field_values`, `schedule`, `goals`, `settings`) are serialized/deserialized through Dart's `jsonEncode`/`jsonDecode` which handle escaping. Malformed JSON is rejected at the parsing level before reaching the database.
+
+**Emoji and special characters:** Allowed in all text fields. The database uses UTF-8 encoding. No character blacklisting — just length limits.
+
+### 15.3 Authentication & Token Security
+
+**Supabase Auth handles:**
+- JWT token issuance, refresh, and revocation
+- Password hashing (bcrypt) — plaintext passwords are never stored
+- OAuth flows for Google and Apple sign-in
+- Email OTP verification
+
+**Token storage:**
+- **Native (iOS/Android):** JWT stored in platform-secure storage (iOS Keychain, Android EncryptedSharedPreferences). Never in plain SharedPreferences or local SQLite.
+- **Web:** JWT stored in memory (Supabase JS client default). Not in localStorage or cookies to prevent XSS token theft.
+
+**Token refresh:** Supabase handles automatic token refresh. If a refresh fails (e.g., token revoked after account deletion), the app detects the auth error and reverts to anonymous mode.
+
+**Session timeout:** Sessions do not auto-expire while the refresh token is valid. Supabase's default refresh token lifetime is used (typically 1 week). The user stays signed in until they explicitly sign out or the refresh token expires.
+
+### 15.4 Data Encryption
+
+**In transit:** All communication between the app and Supabase uses HTTPS/TLS. No plaintext HTTP. Supabase enforces TLS on all connections.
+
+**At rest (cloud):** Supabase uses encrypted storage at the infrastructure level (AES-256). The app does not implement additional application-level encryption.
+
+**At rest (local/native):** SQLite data on the device is not encrypted by default. For V1 this is acceptable — the device's own security (passcode, biometrics) protects local data. Application-level SQLite encryption (using `sqlcipher`) can be added in V2 if required for compliance.
+
+### 15.5 JSONB Safety
+
+Several tables store JSONB: `schedule`, `fields`, `goals`, `field_values`, `settings`, `timer_segments`, `action_data`, `activity_config`, `rules`.
+
+**Risks:**
+- Oversized JSONB payloads consuming storage/memory
+- Deeply nested structures causing parsing performance issues
+- Unexpected keys or types breaking the application
+
+**Mitigations:**
+- Maximum JSONB payload size enforced at the application level: 100KB per field. Supabase/Postgres can also enforce this via check constraints.
+- The app defines strict TypeScript/Dart types for each JSONB structure. Unknown keys are ignored (not rejected — for forward compatibility), but required keys are validated.
+- JSONB fields are never constructed by string concatenation — always through structured serialization (`jsonEncode` in Dart, Supabase client SDK for writes).
+- No user-provided text is interpreted as a JSONB key — field IDs are system-generated UUIDs, not user-typed strings.
+
+### 15.6 Rate Limiting
+
+**Supabase built-in rate limiting:** Supabase applies rate limits on auth endpoints (sign-up, sign-in, password reset) to prevent brute-force attacks. Default limits are sufficient for V1.
+
+**Application-level considerations:**
+- Sync queue processing: max 100 records per sync batch to prevent one user from overloading the API
+- Entry creation: no hard rate limit (a user legitimately logging "Drink Water" 8 times a day should not be blocked), but monitor for abuse patterns
+- Competition entries: one entry per user per logged_at timestamp — prevents rapid-fire duplicate submissions
+
+**V2 enhancement:** If the app scales, implement API rate limiting via Supabase Edge Functions or a reverse proxy (e.g., Cloudflare) to protect against abuse.
+
+### 15.7 Social & Competition Security
+
+**Friends:**
+- Friend requests require authentication — no anonymous access
+- A user can only see activity data that has been explicitly shared with them via `activity_shares`
+- Unfriending immediately revokes access to shared activity data
+
+**Competitions:**
+- Private competitions: only participants can see entries and leaderboards
+- Public competitions: any authenticated user can view but must join to submit entries
+- Competition entries are validated server-side — the entry's field values must match the competition's `activity_config` structure
+- The competition creator can remove participants but cannot modify their entries
+- Participants can only modify/delete their own entries
+
+**Profile visibility:** Controlled by user setting (friends only, anyone, nobody). The RLS policy on the `users` table enforces this — if set to "friends only," non-friends cannot query that user's name, avatar, or bio from the API.
+
+### 15.8 Local Data Security (Native)
+
+- SQLite database is stored in the app's private directory (sandboxed by iOS/Android)
+- Other apps cannot access Kitab's local data
+- If the user uninstalls the app, local data is deleted by the OS
+- Sync queue payloads may contain sensitive data (entries, settings) — they are stored in the same sandboxed SQLite, not in temporary/shared directories
+- Exported data files (JSON/CSV) are generated in a temporary directory and shared via the system share sheet — the app does not persist exported files
+
+### 15.9 Development Security Practices
+
+- **No hardcoded secrets** in the codebase. Supabase URL and anon key are stored in environment configuration (not committed to git). Service role key is never used in the client.
+- **Dependency scanning** before release — check for known vulnerabilities in Flutter packages
+- **Supabase service role key** is only used in Edge Functions (server-side), never in the client app. The client only uses the anon key + user JWT.
+- **No debug logging of sensitive data** in production builds. Auth tokens, passwords, and personal data are never logged.
+
+---
+
+## 16. Technical Implementation Details
+
+### 16.1 Activity Search — Suggestion Ranking
+
+When the user types in any activity search field (FAB quick logs, expanded entry form, Book search), suggestions are ranked:
+
+1. **Most recently logged** — activities with the most recent entry appear first
+2. **Most frequently logged** — higher total entry count ranks higher
+3. **Alphabetical** — tiebreaker for equal recency and frequency
+
+**Display:** Maximum 5 suggestions shown below the text field, filtered in real-time as the user types. Beginning-of-word matches are prioritized over mid-word matches (typing "Mor" ranks "Morning Run" above "Good Morning Routine").
+
+### 16.2 Error Handling
+
+**Network errors:**
+- Action failures (save, sync): toast with "Retry" action — "Couldn't save. Check your connection. [Retry]"
+- No full-screen error pages — the app works offline on native
+- Web: alert banner at top when connection drops — "You're offline. Changes can't be saved." Auto-dismisses when connection returns.
+
+**Validation errors:**
+- Inline, field-level. The offending field gets an Error border (red) + error message below in Body Small
+- Save button highlights the first invalid field and scrolls to it — no dialog
+- Examples: "Activity name is required", "This name is already taken", "Password must be at least 8 characters"
+
+**Data corruption:**
+- If an entry references a deleted activity: treat as unlinked (null activity_id). Log for debugging, no user-facing error.
+- If local SQLite is corrupted: offer "Reset local data and sync from cloud" in Settings → Data & Storage. Wipes local DB and pulls fresh from Supabase.
+
+### 16.3 Loading States
+
+**Skeleton screens** shown immediately on screen load, replaced when data arrives:
+- **Home:** Skeleton summary card (rectangle + circle for ring) + 3–4 skeleton activity cards. Shimmer animation.
+- **Book:** Skeleton day separator + 3–4 skeleton entry cards with left border placeholder. Shimmer.
+- **Profile:** Skeleton avatar circle + text lines. Shimmer.
+- **Insights/Social:** Skeleton chart placeholders + card placeholders. Shimmer.
+
+All use the shimmer animation defined in §4 Component Library (left-to-right gradient sweep, 1.5s loop).
+
+**Pull-to-refresh:** Primary color circular spinner at top of scroll area.
+
+**Button loading:** Spinner replaces button text while action processes. Button disabled during loading.
+
+**Data-heavy operations** (export, import, merge): Progress bar with record count.
+
+### 16.4 Accessibility
+
+**Screen reader labels:**
+- Activity cards: "[Activity name], [status], streak [X] days"
+- Status icons: text alternatives — "completed", "in progress", "pending", "excused", "missed"
+- Progress ring: "[X] of [Y] goals met today"
+- Star rating: "[X] out of 5 stars"
+- Mood: "Mood: [label]" (e.g., "Mood: Good")
+- Timer: "[Activity name] timer, [elapsed time], [running/paused]"
+- FAB: "Log activity, button"
+- Condition chip: "[Condition name], day [X], button. Double tap to edit. Swipe to end."
+
+**Focus order:** Top-to-bottom, left-to-right. Tab key (web) moves through interactive elements in visual order. Bottom nav/icon rail always reachable.
+
+**Touch targets:** Minimum 44×44px (iOS) / 48×48dp (Android). Already defined in §3.
+
+**Dynamic text:** All text scales with system font size settings. Layouts reflow — no clipping, no overflow hidden on text. Tested at 200% system font scale.
+
+**Reduced motion:** System "Reduce Motion" disables: shimmer animations, slide transitions (replaced with crossfade), streak celebration particles, FAB arc animation (instant show/hide), timer segment animations. Haptics unaffected.
+
+**High contrast:** System high contrast mode triggers: WCAG AAA (7:1 ratio) on all text, 2px borders (up from 1.5px), higher saturation semantic colors. Defined in §3.
+
+**Color independence:** No information conveyed by color alone — every color signal paired with icon, label, or pattern.
+
+### 16.5 Push Notifications (Native)
+
+**iOS:**
+- Standard notification banner / lock screen / notification center
+- Tap deep-links to relevant screen (Home for activity reminders, Social for friend requests, Competition detail for updates)
+- Action buttons on reminders: "Log Now" (opens entry form for that activity), "Dismiss"
+- Badge count on app icon = number of in-app notifications. Clears when Notifications screen is opened.
+
+**Android:**
+- Standard notification with icon, title, description
+- Same deep-linking behavior as iOS
+- Notification channels: "Activity Reminders", "Streaks", "Social", "System" — per-channel management in Android settings
+- No badge count (launcher-dependent)
+
+**Web (browser notifications):**
+- Only if user grants permission
+- Permission request on first sign-in with explanation of what they'll receive
+- Click focuses browser tab and navigates to relevant screen
+
+**Independence:** Push notifications and in-app notifications are independent systems. Dismissing a push does not dismiss the in-app card. Tapping a push that triggers an action also deletes the corresponding in-app notification.
+
+### 16.6 Schema Migrations
+
+**Cloud (Supabase):** Migrations applied server-side via Supabase migration files. The cloud schema is always the latest version.
+
+**Backward compatibility rules:**
+- Only add columns/tables — never remove or rename in production
+- New columns always have default values so old data isn't broken
+- Deprecated columns are ignored in code but not dropped from the schema
+
+**Local (Drift/SQLite):** Each app version defines a schema version number. On launch, Drift detects outdated schema and runs migration scripts sequentially (e.g., v1→v2: add `name` column to entries; v2→v3: add `notifications` table).
+
+**Migration failure:** Show error screen with "Contact Support" option + "Export Data" button so the user can save their data before troubleshooting.
+
+### 16.7 Edge Functions (Supabase)
+
+Minimal for V1 — logic runs client-side where possible:
+
+1. **Notification generation (scheduled cron):** Runs hourly. Checks all users for: streak-at-risk (pending activity that would break a streak before midnight), reminder-to-log (pending activities at user's configured reminder time), condition reminders (active conditions exceeding user's reminder interval). Creates `notifications` rows + triggers push via APNs/FCM.
+
+2. **Competition leaderboard computation:** Database trigger on `competition_entries` insert/update — recalculates rankings for the competition.
+
+3. **Account deletion cleanup:** Cascades deletion across all tables when a user deletes their account.
+
+Everything else (period computation, goal evaluation, streak calculation, sync) runs on the client.
+
+### 16.8 Prayer Time Caching
+
+- **Compute once per day per location.** On app open, compute all 10 prayer/solar times for today using the user's current GPS coordinates. Cache in memory (Riverpod state).
+- **Recompute when location changes significantly** — GPS shift > ~50km (0.5° lat/lng). Handles travel without recomputing on minor GPS fluctuations.
+- **Recompute at day boundary** — midnight (Gregorian) or sunset (Hijri) when the current day changes.
+- **No server-side caching or external API.** Calculation is pure math (solar position algorithms) — fast enough client-side. No API costs.
+- **Historical dates** (viewing past periods in Activity Detail): compute on-demand for the requested date using current location as approximation. If location history were stored (V2), use the historical location instead.
+- **Calculation method and madhab** from user settings (e.g., ISNA + Shafi). Applied consistently to all computations.
