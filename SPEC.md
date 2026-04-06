@@ -2122,14 +2122,15 @@ The expanded entry form includes:
 
 ### 8.5 Entry Creation Summary
 
-| Entry Point | Layer 1 (Template) | Layer 2 (Period) | `logged_at` Default | Form Type |
-|-------------|-------------------|-----------------|--------------------| ----------|
-| FAB → Timer | User searches | Auto-suggested | Now | Collapsed timer |
-| FAB → Habit | User searches | Auto-suggested | Now | Collapsed habit |
-| FAB → Metric | User searches | Auto-suggested | Now | Collapsed metric |
-| Home → Activity card → Record | Pre-linked | Pre-linked (today) | Now | Smart (depends on template) |
-| Home → Needs Attention → Record | Pre-linked | Pre-linked (past period) | Now | Smart (depends on template) |
-| Book → + button | User searches | Auto-suggested | Now | Expanded (all fields) |
+| Entry Point | Layer 1 (Template) | Layer 2 (Period) | `logged_at` Default | Form Type | Source |
+|-------------|-------------------|-----------------|--------------------| ----------|--------|
+| FAB → Timer | User searches | Auto-suggested | Now | Collapsed timer | manual |
+| FAB → Habit | User searches | Auto-suggested | Now | Collapsed habit | manual |
+| FAB → Metric | User searches | Auto-suggested | Now | Collapsed metric | manual |
+| Home → Activity card → Record | Pre-linked | Pre-linked (today) | Now | Smart (depends on template) | manual |
+| Home → Needs Attention → Record | Pre-linked | Pre-linked (past period) | Now | Smart (depends on template) | manual |
+| Book → + button | User searches | Auto-suggested | Now | Expanded (all fields) | manual |
+| V2: Health device auto-import | Auto-linked | Auto-linked | From source data | Auto (no form) | apple_health, etc. |
 
 ### 8.6 Expanded Entry Form
 
@@ -2838,6 +2839,8 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | timer_segments | JSONB | Nullable. Array of segments: `[{ "start": "UTC timestamp", "end": "UTC timestamp" }]`. Total active time = sum of segment durations. Total idle time = sum of gaps. Activity start = first segment start. Activity end = last segment end. If last action was pause then stop, idle time between last pause and stop is discarded. |
 | notes | Text | Default notes field (always available on every entry) |
 | routine_entry_id | UUID | Nullable FK → routine_entries. Links this entry to the routine session it was created in. Null for standalone entries. |
+| source | Text | Nullable. How this entry was created: null or 'manual' (default — user logged it), or a V2 external source identifier ('apple_health', 'google_health', 'fitbit', 'garmin', 'withings', etc.). Used for V2 health device import and competition verification. |
+| external_id | Text | Nullable. The unique ID from the external source to prevent duplicate imports during V2 auto-import. Unused in V1. |
 | logged_at | Timestamp (UTC) | When the activity occurred (user's intended time, may be retroactive) |
 | created_at | Timestamp (UTC) | System timestamp |
 | updated_at | Timestamp (UTC) | |
@@ -2979,6 +2982,8 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 | competition_id | UUID | FK → competitions |
 | user_id | UUID | FK → users |
 | personal_entry_id | UUID | Nullable FK → entries. Links this competition entry to the user's personal entry when dual-tracking is enabled. Null if "just compete" mode. |
+| source | Text | Nullable. Same as entries.source. In V2, competition creators can optionally require verified sources (e.g., only GPS-verified runs count). |
+| external_id | Text | Nullable. Same as entries.external_id. Prevents duplicate imports from health devices in V2. |
 | field_values | JSONB | Same structure as entries.field_values |
 | logged_at | Timestamp (UTC) | |
 | created_at | Timestamp (UTC) | |
@@ -2989,7 +2994,7 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 users (username UNIQUE)
  ├── 1:many → categories (UNIQUE name per user)
  │                ├── 1:many → activities (UNIQUE name per user, is_private)
- │                │                ├── 1:many → entries (name stored independently, routine_entry_id nullable)
+ │                │                ├── 1:many → entries (name stored independently, routine_entry_id nullable, source nullable, external_id nullable)
  │                │                ├── 1:many → activity_period_statuses (UNIQUE per activity+period)
  │                │                │               └── references → conditions
  │                │                └── 1:many → goal_period_statuses (UNIQUE per activity+goal+period)
@@ -3013,7 +3018,7 @@ users (username UNIQUE)
  ├── 1:many → reactions (emoji/canned messages to friends)
  ├── 1:many → user_charts (custom Insights charts)
  ├── 1:many → competition_participants (UNIQUE per user+competition)
- │                └── competition_entries (personal_entry_id nullable)
+ │                └── competition_entries (personal_entry_id nullable, source nullable, external_id nullable)
  ├── 1:many → competitions (creator)
  └── settings (1:1, stored in users.settings JSONB)
 ```
@@ -6284,3 +6289,37 @@ Everything else (period computation, goal evaluation, streak calculation, sync) 
 - **No server-side caching or external API.** Calculation is pure math (solar position algorithms) — fast enough client-side. No API costs.
 - **Historical dates** (viewing past periods in Activity Detail): compute on-demand for the requested date using current location as approximation. If location history were stored (V2), use the historical location instead.
 - **Calculation method and madhab** from user settings (e.g., ISNA + Shafi). Applied consistently to all computations.
+
+---
+
+## 18. V2 Roadmap (Deferred Features)
+
+Features deliberately excluded from V1. The V1 architecture is designed to accommodate these without breaking changes.
+
+### 18.1 Health Device Integration
+
+Auto-import data from Apple HealthKit, Google Health Connect, and third-party APIs (Fitbit, Garmin, Withings, etc.) into Kitab entries.
+
+**V1 preparation:** `source` and `external_id` columns added to `entries` and `competition_entries` tables. All V1 entries have `source = null` (treated as 'manual'). V2 will populate these with the source identifier and external record ID to prevent duplicate imports.
+
+**V2 scope:**
+- Settings → Integrations screen for connecting health sources
+- Per-field import mapping on activity templates: "Import 'weight' from Apple Health → Body Mass"
+- Auto-entry creation when new data arrives from connected sources
+- Background sync from health sources (added to existing sync triggers)
+- Unit conversion system (kg ↔ lbs, km ↔ miles, etc.)
+- Competition anti-cheat: verified source badges on leaderboard entries, optional "verified sources only" competition rule
+
+### 18.2 Other V2 Features
+
+- **Apple Watch companion app** — native Swift/SwiftUI, notifications + quick actions
+- **AI chatbot for data queries** — natural language questions about user's data (like Whoop)
+- **Multi-activity comparison charts** — plot two activities on the same axes
+- **Chart export** — save charts as image/PDF
+- **Reports** — group charts into shareable reports
+- **Email delivery** — email exports and reports to the user
+- **Auto-scheduled exports** — monthly backup to cloud storage
+- **Team competitions** — group-based challenges
+- **Community template library** — share and browse activity templates
+- **SQLite encryption** — application-level encryption using sqlcipher for compliance
+- **Location history** — store GPS coordinates over time for historical prayer time accuracy
