@@ -3020,6 +3020,8 @@ users (username UNIQUE)
  ├── 1:many → competition_participants (UNIQUE per user+competition)
  │                └── competition_entries (personal_entry_id nullable, source nullable, external_id nullable)
  ├── 1:many → competitions (creator)
+ ├── 1:many → user_reports (reporter)
+ ├── 1:many → blocked_users (blocker)
  └── settings (1:1, stored in users.settings JSONB)
 ```
 
@@ -5667,6 +5669,12 @@ Accessible from: Profile card "Create Account" button, or any prompt where an ac
 │ Confirm Password                    │
 │ [••••••••____________] [👁]         │
 │                                     │
+│ [✓] I am at least 13 years old      │
+│                                     │
+│ By creating an account, you agree   │
+│ to our Terms of Service and         │
+│ Privacy Policy.                     │
+│                                     │
 │       [Create Account]              │
 │                                     │
 │ Already have an account? Sign In    │
@@ -6321,5 +6329,370 @@ Auto-import data from Apple HealthKit, Google Health Connect, and third-party AP
 - **Auto-scheduled exports** — monthly backup to cloud storage
 - **Team competitions** — group-based challenges
 - **Community template library** — share and browse activity templates
-- **SQLite encryption** — application-level encryption using sqlcipher for compliance
+- **SQLite encryption** — application-level encryption using sqlcipher (see §18.3 below)
 - **Location history** — store GPS coordinates over time for historical prayer time accuracy
+
+### 18.3 Health Data & Encryption Requirements
+
+**V1 (no health data):** No encryption requirement. Habit tracking data is not regulated. Cloud is already encrypted (Supabase AES-256) and all traffic uses TLS.
+
+**V2 (health device integration):** Importing health data (weight, heart rate, sleep, etc.) triggers additional requirements:
+
+| Requirement | Status |
+|------------|--------|
+| Cloud encryption at rest | ✓ Already handled (Supabase AES-256) |
+| Encryption in transit | ✓ Already handled (TLS/HTTPS) |
+| Local SQLite encryption | ❌ Must add with V2 health features — use sqlcipher (~5-15% performance overhead, negligible on modern devices) |
+| User consent for health data | ❌ Must add — explicit opt-in per data source, clear explanation of what's accessed/stored/synced |
+| Privacy policy update | ❌ Must update to list health data types collected, storage details, third-party sharing (none), and user rights |
+| App Store health data disclosure | ❌ Must declare health data usage in App Store Connect (iOS) and Play Console (Android) privacy sections |
+
+**Sensitivity tiers for imported health data:**
+
+| Data Type | Sensitivity | Encryption Priority |
+|-----------|------------|-------------------|
+| Steps, workouts | Low | Recommended |
+| Weight, distance | Low-medium | Recommended |
+| Heart rate, sleep | Medium | Strongly recommended |
+| Menstrual cycle, blood pressure, glucose | High (sensitive/medical) | Required — encrypt local DB before importing these types |
+
+**Regulatory notes:**
+- **HIPAA (US):** Only applies if Kitab is used in a healthcare context (prescribed by a doctor, partnered with a covered entity). A personal tracker is generally not subject to HIPAA. But if the app ever enters the healthcare space, HIPAA requires encryption at rest and in transit.
+- **GDPR (EU):** Health data is "special category data" (Article 9). Requires explicit consent (V2 opt-in flow handles this) and "appropriate security measures" (encryption strongly recommended).
+- **Apple HealthKit guidelines (§5.1.3):** Health data must not be stored in iCloud without consent, must have a clear privacy policy, and must be handled with appropriate care. Apple doesn't mandate specific encryption but expects responsible handling.
+- **Google Health Connect:** Similar requirements — user consent, data minimization, clear privacy policy.
+
+**V2 launch plan:** Ship sqlcipher encryption + privacy policy update + App Store health disclosures as a single release alongside the health device integration feature. This keeps compliance clean — encryption arrives exactly when health data arrives.
+
+### 18.4 Premium Tiers (Future)
+
+V1 is entirely free. Future premium tiers will be handled via **RevenueCat** — wrapping Apple IAP (iOS), Google Play Billing (Android), and Stripe (web) into a single subscription management API.
+
+- In-app purchases on iOS/Android use the platform's native billing (required by App Store and Play Store policies)
+- Web purchases go through Stripe directly (no platform commission)
+- RevenueCat manages entitlements, cross-platform subscription status, and analytics
+- Free up to $2.5k/month tracked revenue; scales with usage after that
+
+This approach is compliant with both Apple and Google store policies while minimizing commission on web purchases.
+
+---
+
+## 19. Legal, Compliance & Analytics
+
+### 19.1 Age Restriction
+
+**Minimum age: 13 years old.** Kitab is not designed for or marketed to children under 13.
+
+**Enforcement during account creation:**
+- A checkbox on the Create Account form: "I confirm that I am at least 13 years old" (required to proceed)
+- No date-of-birth age gate (those are easily circumvented and add friction)
+- If a user is discovered to be under 13, their account and data will be deleted per COPPA requirements
+
+**App Store age rating:** 12+ (Apple) / Everyone (Google). The app contains no objectionable content, violence, gambling, or mature themes. Social features (friends, competitions) warrant 12+ rather than 4+.
+
+**Birthday field in Profile:** Used for the birthday greeting feature only. Not used for age verification (the user may not enter their real birthday). If birthday is set and indicates the user is under 13, show a warning but don't auto-delete — the birthday could be wrong.
+
+### 19.2 Privacy Policy
+
+The privacy policy must be accessible from:
+- App Store / Play Store listing (URL required for submission)
+- Within the app: Settings → About → Privacy Policy
+- Web app footer
+- Onboarding (linked, not shown in full)
+
+**Required content:**
+
+#### Data We Collect
+
+| Data Category | What | Why | Stored Where |
+|--------------|------|-----|-------------|
+| **Account Information** | Name, email, username, avatar, bio, birthday | Account identity, personalization, birthday greeting | Supabase cloud + local SQLite (native) |
+| **Activity Data** | Activity templates, entries, field values, notes, timer segments | Core app functionality — tracking habits and activities | Supabase cloud + local SQLite (native) |
+| **Goal & Streak Data** | Goal configurations, period statuses, goal statuses, streaks | Goal evaluation, streak tracking, insights | Supabase cloud + local SQLite (native) |
+| **Condition Data** | Condition presets, condition records (start/end dates) | Excuse tracking, insights on life events | Supabase cloud + local SQLite (native) |
+| **Routine Data** | Routine templates, routine entries, routine statuses | Routine orchestration and tracking | Supabase cloud + local SQLite (native) |
+| **Social Data** | Friends list, sharing preferences, reactions | Social features — sharing progress with chosen friends | Supabase cloud only |
+| **Competition Data** | Competition entries, leaderboard position | Competition features | Supabase cloud only |
+| **Location** | GPS coordinates (when granted) | Prayer time calculation, Location field in entries | Used transiently for computation; coordinates stored only in Location field entries |
+| **Custom Charts** | Chart configurations | User-created Insights visualizations | Supabase cloud + local SQLite (native) |
+| **Device Information** | Device type, OS version, app version | Bug/crash reporting, analytics | Analytics service (see §19.6) |
+| **Usage Analytics** | Screen views, feature usage, session duration | Improving app UX and features | Analytics service (see §19.6) |
+
+#### Data We Do NOT Collect
+- We do not collect or store passwords (handled by Supabase Auth with bcrypt hashing)
+- We do not collect payment information (handled by RevenueCat / Stripe in V2)
+- We do not collect health data from device sensors (V1 — V2 will update this policy)
+- We do not collect contacts, photos, microphone, or camera data (camera only used for avatar upload, photo not stored by us — stored as URL)
+- We do not sell user data to any third party
+- We do not serve advertisements
+
+#### How Data Is Shared
+
+| Shared With | What | Why | User Control |
+|------------|------|-----|-------------|
+| **Friends (opt-in)** | Streaks, completion rates, completion days for shared activities | Social accountability | User controls per-activity, per-friend sharing in Settings → Privacy & Sharing |
+| **Competition participants** | Competition entries and leaderboard position | Competition functionality | User joins voluntarily; leaving removes all their data from the competition |
+| **Supabase (data processor)** | All cloud-synced data | Cloud storage and sync | User can export all data and delete their account at any time |
+| **Analytics service (data processor)** | Anonymized usage data, crash reports | App improvement | No personally identifiable data sent to analytics |
+| **No one else** | N/A | We do not sell, rent, or share data with advertisers, data brokers, or any other third party | N/A |
+
+#### Data Retention
+
+| Scenario | Retention |
+|----------|-----------|
+| Active account | Data retained indefinitely while account is active |
+| Inactive account (no login for 24+ months) | Account and data retained but may be flagged for potential cleanup. User will be emailed before any action. |
+| Deleted account | Cloud data permanently deleted within 24 hours. Local data on the device remains unless the user explicitly clears it. Backups may retain data for up to 30 days before being purged. |
+| Anonymous user (no account) | Data exists only on the device. Uninstalling the app deletes all data. |
+
+#### User Rights
+
+| Right | How to Exercise |
+|-------|----------------|
+| Access your data | View all data within the app. Export via Settings → Data & Storage → Export. |
+| Correct your data | Edit any entry, activity, or profile information within the app. |
+| Delete your data | Delete individual entries (swipe/long-press). Delete entire account via Settings → Account → Delete Account. |
+| Export your data (portability) | Settings → Data & Storage → Export (JSON or CSV format). |
+| Restrict processing | Sign out — data remains on device but is no longer synced or processed in the cloud. |
+| Withdraw consent | Revoke location permission in device settings. Disable sharing per activity. Delete account. |
+| Lodge a complaint | Contact us (see contact info below) or lodge a complaint with your local data protection authority. |
+
+#### Cookies and Local Storage (Web App)
+
+The web app uses:
+- **Supabase auth session token** stored in browser localStorage — essential for authentication. Cannot be disabled without losing sign-in functionality.
+- **No advertising cookies**
+- **No third-party tracking cookies**
+- **Analytics cookies** — see §19.6. Can be opted out.
+
+**GDPR cookie consent (web app):** On first visit, a consent banner appears:
+```
+Kitab uses essential cookies for authentication and optional
+analytics to improve the app. [Accept All] [Essential Only] [Learn More]
+```
+"Essential Only" disables analytics tracking. "Learn More" links to the full privacy policy. The preference is stored and respected.
+
+#### Children's Privacy (COPPA / GDPR for Minors)
+
+Kitab is not intended for children under 13. We do not knowingly collect personal information from children under 13. If we discover that a user is under 13, we will delete their account and data promptly. Parents/guardians can contact us to request deletion.
+
+#### Contact Information
+
+Privacy concerns: privacy@kitab.app (or equivalent)
+General support: support@kitab.app
+
+#### Policy Updates
+
+Users will be notified of material privacy policy changes via in-app notification and email (if signed in). Continued use after notification constitutes acceptance.
+
+### 19.3 Terms of Service
+
+The Terms of Service must be accessible from the same locations as the Privacy Policy.
+
+**Required content:**
+
+- **Acceptance of Terms:** By using Kitab, you agree to these terms. If you don't agree, don't use the app.
+- **Eligibility:** Must be at least 13 years old.
+- **Account Responsibility:** Users are responsible for maintaining the security of their account. One account per person.
+- **Acceptable Use:** Users must not:
+  - Use the app for illegal purposes
+  - Harass, bully, or abuse other users through social features
+  - Submit false or misleading data in competitions with intent to deceive
+  - Attempt to access other users' data without authorization
+  - Reverse-engineer, decompile, or tamper with the app
+  - Create multiple accounts to manipulate competitions or social features
+- **User Content:** Users retain ownership of all data they create (entries, activities, notes). By using social features, users grant Kitab a limited license to display shared data to their chosen friends and competition participants.
+- **Intellectual Property:** The Kitab name, logo, design system, and app code are the property of the developer. Users may not copy, modify, or redistribute.
+- **Termination:** We may suspend or terminate accounts that violate these terms. Users may delete their account at any time.
+- **Disclaimer:** The app is provided "as is." We do not guarantee uninterrupted service or data preservation (though we make best efforts).
+- **Limitation of Liability:** We are not liable for damages resulting from use of the app, data loss, or service interruptions.
+- **Governing Law:** Specify the jurisdiction (typically the developer's country/state of residence).
+- **Dispute Resolution:** How disputes are handled (arbitration, mediation, or courts in the specified jurisdiction).
+
+### 19.4 App Store Privacy Labels
+
+#### Apple App Store (App Privacy)
+
+| Data Type | Collected | Linked to Identity | Used for Tracking |
+|-----------|----------|-------------------|------------------|
+| Contact Info (email) | Yes | Yes | No |
+| Name | Yes | Yes | No |
+| User ID | Yes | Yes | No |
+| User Content (activity data, entries, notes) | Yes | Yes | No |
+| Location (precise, when granted) | Yes | Yes | No |
+| Usage Data (analytics) | Yes | No | No |
+| Diagnostics (crash logs) | Yes | No | No |
+
+**Data used for tracking:** None. Kitab does not track users across other apps or websites.
+
+**Data linked to identity:** Account info, activity data, and location are linked to the user's identity for core app functionality.
+
+**Data not linked to identity:** Analytics and diagnostics are anonymized.
+
+#### Google Play Store (Data Safety)
+
+| Question | Answer |
+|----------|--------|
+| Does your app collect or share any user data? | Yes |
+| Is all collected data encrypted in transit? | Yes (TLS) |
+| Do you provide a way for users to request data deletion? | Yes (Settings → Account → Delete Account) |
+| Data types collected | Personal info (name, email), App activity (entries, activities), App info and performance (crash logs, diagnostics), Device or other IDs |
+| Data shared with third parties | None (analytics is anonymized, no advertising partners) |
+| Data handling for each type | See privacy policy for details |
+
+### 19.5 Report & Block User
+
+Social safety mechanisms for the Social screen:
+
+**Report User:**
+- Accessible from Friend Detail view (overflow menu ⋮) and Competition Detail (participant list, long press)
+- Opens a report form: reason dropdown (Harassment, Inappropriate content, Cheating in competition, Spam, Other) + optional description
+- Report is submitted to a backend queue for review
+- Toast: "Report submitted. We'll review this shortly."
+- Reported user is not notified
+
+**Block User:**
+- Accessible from the same locations as Report
+- Confirmation: "Block [name]? They won't be able to see your shared activities or send you friend requests. [Cancel] [Block]"
+- Blocking immediately:
+  - Removes them from your friends list (bidirectional unfriend)
+  - Revokes all activity sharing between you
+  - Removes them from any competitions you created
+  - Prevents them from sending you friend requests or reactions
+  - They are not notified of the block
+- Unblock available from Settings → Privacy & Sharing → Blocked Users
+
+**Database:**
+
+#### user_reports
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID | Primary key |
+| reporter_id | UUID | FK → users |
+| reported_id | UUID | FK → users |
+| reason | Text | 'harassment', 'inappropriate_content', 'cheating', 'spam', 'other' |
+| description | Text | Nullable. Free-text details. |
+| status | Text | 'pending', 'reviewed', 'action_taken', 'dismissed' |
+| created_at | Timestamp (UTC) | |
+
+#### blocked_users
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID | Primary key |
+| user_id | UUID | FK → users (the blocker) |
+| blocked_id | UUID | FK → users (the blocked) |
+| created_at | Timestamp (UTC) | |
+
+**Uniqueness:** `UNIQUE(user_id, blocked_id)`
+
+RLS policies must account for blocked users: blocked users cannot query the blocker's data via friends, shares, or competitions.
+
+### 19.6 Analytics & Crash Reporting
+
+**Purpose:** Understand user behavior to improve the app. Identify and fix bugs/crashes. NOT for advertising or user tracking.
+
+**Recommended service: PostHog** (open-source, self-hostable, GDPR-friendly) or **Firebase Analytics + Crashlytics** (Google, widely used, free tier generous).
+
+**My recommendation: PostHog** for analytics (privacy-focused, can self-host to avoid third-party data sharing concerns) + **Sentry** for crash reporting (industry standard, excellent Flutter support).
+
+#### What We Track (Analytics)
+
+| Event Category | Examples | Personally Identifiable? |
+|---------------|---------|------------------------|
+| Screen views | Home opened, Book opened, Insights opened | No (anonymized user ID) |
+| Feature usage | Timer started, habit logged, chart created, competition joined | No |
+| Onboarding funnel | Each step completed/skipped, template selections | No |
+| Session data | Session duration, sessions per day, retention | No |
+| UI interactions | FAB tapped, filter used, tab switched, search used | No |
+| Feature adoption | % users with routines, % with Islamic personalization, % with social features | No (aggregate) |
+
+**What we do NOT track:**
+- Entry content (what activities the user tracks, their field values, notes)
+- Activity names or descriptions
+- Friend names or social interactions content
+- Location coordinates
+- Any personally identifiable information in analytics events
+
+#### What We Track (Crash Reporting)
+
+| Data | Included | Purpose |
+|------|----------|---------|
+| Stack trace | Yes | Identify the code that crashed |
+| Device model, OS version | Yes | Reproduce device-specific bugs |
+| App version, build number | Yes | Identify which release has the bug |
+| Anonymized user ID | Yes | Correlate multiple crashes from same user |
+| Breadcrumbs (recent actions before crash) | Yes | Understand what led to the crash |
+| User's activity data | No | Never included in crash reports |
+| Screen state / screenshots | No | Never captured automatically |
+
+#### User Consent
+
+**Native app:** Analytics is enabled by default (standard practice). Users can opt out in Settings → Privacy & Sharing → "Help improve Kitab" toggle. When opted out, no analytics events are sent. Crash reporting remains on (essential for app stability — this is standard and accepted).
+
+**Web app:** Analytics follows the cookie consent banner (§19.2). "Essential Only" disables analytics. Crash reporting still active.
+
+#### Implementation
+
+- Analytics SDK initialized on app start (if consent given)
+- Each screen registers a screen view event automatically
+- Key user actions fire named events (e.g., `entry_created`, `timer_started`, `competition_joined`)
+- No PII in event properties — use anonymized IDs only
+- Data retained in analytics service for 12 months, then auto-deleted
+- Analytics dashboard accessible to the development team only
+
+### 19.7 Open Source Licenses
+
+The app uses open-source packages. Their licenses must be:
+- Listed in Settings → About → Open Source Licenses
+- Compliant with their terms (MIT, BSD, Apache 2.0 are all permissive and fine for commercial use)
+- Reviewed before adding any new dependency to ensure license compatibility
+
+Flutter itself is BSD-licensed. Supabase client SDKs are MIT-licensed. Both are permissive.
+
+### 19.8 Accessibility Compliance
+
+While not legally required for most private apps, accessibility best practices improve user experience and broaden the audience:
+
+- **WCAG 2.1 AA** compliance is the target (already addressed in §3 Design System and §17.4 Accessibility)
+- **iOS:** VoiceOver support, Dynamic Type, Reduce Motion — all specced
+- **Android:** TalkBack support, font scaling, animation preferences — all specced
+- **Web:** Keyboard navigation, screen reader support, focus indicators — all specced
+
+Some jurisdictions (EU, certain US states) are moving toward mandatory digital accessibility. Building accessible from V1 avoids costly retrofitting.
+
+### 19.9 GDPR-Specific Compliance Checklist
+
+| Requirement | Status |
+|-------------|--------|
+| Lawful basis for processing | Consent (account creation) + Legitimate interest (analytics) |
+| Privacy policy | §19.2 |
+| Data Processing Agreement with Supabase | Must sign Supabase's standard DPA before launch |
+| Data Protection Impact Assessment (DPIA) | Not required for V1 (no high-risk processing). Required when V2 adds health data. |
+| Right to access | ✓ In-app data viewing |
+| Right to rectification | ✓ In-app editing |
+| Right to erasure | ✓ Account deletion |
+| Right to data portability | ✓ Export (JSON/CSV) |
+| Right to restrict processing | ✓ Sign out stops cloud processing |
+| Right to object (analytics) | ✓ Opt-out toggle |
+| Data breach notification | Must notify users within 72 hours of discovering a breach. Add a breach response plan before launch. |
+| Cookie consent (web) | ✓ Consent banner specced |
+| International data transfers | Supabase data may be stored in US regions. Must ensure Standard Contractual Clauses (SCCs) are in place via Supabase's DPA. |
+
+### 19.10 Pre-Launch Compliance Checklist
+
+| Item | Required For | Status |
+|------|-------------|--------|
+| Privacy policy published at a public URL | App Store, Play Store, Web | Draft in §19.2, must finalize and host |
+| Terms of service published | App Store, Play Store, Web | Draft in §19.3, must finalize and host |
+| Age restriction (13+) implemented | COPPA, App Store, Play Store | Specced in §19.1 |
+| App Store privacy labels submitted | App Store | Mapping in §19.4 |
+| Play Store data safety form completed | Play Store | Mapping in §19.4 |
+| Cookie consent banner (web) | GDPR | Specced in §19.2 |
+| Analytics opt-out toggle | GDPR, privacy best practices | Specced in §19.6 |
+| Supabase DPA signed | GDPR | Must do before launch |
+| Report/block user feature | App Store (safety), best practices | Specced in §19.5 |
+| Open source license list | Legal compliance | Specced in §19.7 |
+| Crash reporting configured | App stability | Specced in §19.6 |
+| Data export functional | GDPR right to portability | Specced in §14.4 |
+| Account deletion functional | App Store requirement, GDPR | Specced in §14.4, §15.8 |
+| Breach response plan drafted | GDPR | Must do before launch |
