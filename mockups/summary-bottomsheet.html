@@ -3,292 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kitab — Summary Card Bottom Sheet</title>
+<title>Kitab — Summary Bottom Sheet</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared-styles.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
---primary:#0D7377;--primary-light:#14A3A8;--accent:#C8963E;--accent-light:#E8B960;
---bg:#FAFAF8;--surface:#FFFFFF;--text-primary:#1A1815;--text-secondary:#5C5850;
---gray-50:#F5F4F2;--gray-100:#E8E6E3;--gray-200:#D4D1CC;--gray-300:#B8B4AE;
---gray-400:#9C9790;--gray-500:#7A756E;--gray-600:#5C5850;--gray-700:#3E3B35;
---gray-800:#2A2722;--gray-900:#1A1815;--black:#121110;
---success:#2D8659;--warning:#C4841D;--error:#C43D3D;--info:#2D6B8A
-}
-body{font-family:'Inter',sans-serif;background:#C8C4BE;min-height:100vh;padding:20px;display:flex;flex-direction:column;align-items:center;gap:24px}
-
-.controls{display:flex;gap:24px;align-items:center;font-size:14px;font-weight:500;color:#3E3B35}
-.toggle-label{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
-.toggle-switch{position:relative;width:48px;height:26px;background:#B8B4AE;border-radius:13px;cursor:pointer;transition:background .2s}
-.toggle-switch.active{background:var(--primary)}
-.toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.toggle-switch.active::after{transform:translateX(22px)}
-
-.devices{display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
-
-/* Phone */
-.phone-frame{background:#111;border-radius:44px;padding:10px;box-shadow:0 12px 48px rgba(0,0,0,.25)}
-.phone-screen{width:360px;height:780px;border-radius:36px;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);position:relative;transition:background .3s}
-.dynamic-island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:18px;z-index:100}
-
-/* Backdrop */
-.backdrop{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:150;transition:opacity .3s}
-
-/* Bottom Sheet */
-.bottom-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:24px 24px 0 0;z-index:200;max-height:85%;overflow-y:auto;transition:all .3s;box-shadow:0 -8px 40px rgba(0,0,0,.12)}
-.bottom-sheet::-webkit-scrollbar{display:none}
-
-.sheet-handle{display:flex;justify-content:center;padding:10px 0 4px;position:sticky;top:0;background:var(--surface);z-index:10;border-radius:24px 24px 0 0}
-.handle-bar{width:36px;height:4px;background:var(--gray-300);border-radius:2px}
-
-.sheet-content{padding:0 24px 32px}
-
-.sheet-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.sheet-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text-primary);transition:color .3s}
-.close-btn{width:32px;height:32px;border-radius:50%;background:var(--gray-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--gray-500);transition:all .2s}
-.close-btn:hover{background:var(--gray-200)}
-
-.sheet-dates{margin-bottom:20px}
-.sheet-date{font-size:14px;color:var(--text-primary);font-weight:500;transition:color .3s}
-.sheet-hijri{font-size:13px;color:var(--gray-500);display:flex;align-items:center;gap:5px;margin-top:3px;transition:color .3s}
-
-/* Progress Section */
-.progress-section{display:flex;flex-direction:column;align-items:center;padding:20px 0;margin-bottom:16px;background:var(--gray-50);border-radius:16px;transition:background .3s}
-.big-ring{position:relative;width:120px;height:120px;margin-bottom:12px}
-.big-ring svg{transform:rotate(-90deg);width:120px;height:120px}
-.big-ring .track{fill:none;stroke:var(--gray-100);stroke-width:8;transition:stroke .3s}
-.big-ring .fill{fill:none;stroke:var(--primary);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .6s}
-.big-ring-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
-.big-ring-num{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:var(--text-primary);transition:color .3s}
-.big-ring-label{font-size:11px;color:var(--text-secondary);transition:color .3s}
-
-.status-breakdown{display:flex;gap:16px;margin-top:4px}
-.status-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;transition:color .3s}
-.status-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-.dot-done{background:var(--success)}
-.dot-upcoming{background:var(--gray-300)}
-.dot-excused{background:var(--info)}
-.dot-missed{background:var(--error)}
-
-/* Streak Section */
-.section-label{font-family:'DM Serif Display',serif;font-size:17px;color:var(--text-primary);margin-bottom:12px;margin-top:20px;transition:color .3s}
-
-.streak-highlight{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.streak-fire{font-size:28px}
-.streak-num{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:var(--accent)}
-.streak-unit{font-size:14px;color:var(--text-secondary);transition:color .3s}
-
-.week-grid{margin-bottom:8px}
-.week-row{display:flex;gap:4px;margin-bottom:4px;align-items:center}
-.week-label{width:52px;font-size:10px;color:var(--gray-400);font-weight:500;flex-shrink:0;transition:color .3s}
-.day-headers{display:flex;gap:4px;margin-bottom:6px;padding-left:56px}
-.day-hdr{width:28px;text-align:center;font-size:10px;font-weight:600;color:var(--gray-400);transition:color .3s}
-.day-dot{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
-.dd-green{background:rgba(45,134,89,.15);color:var(--success)}
-.dd-amber{background:rgba(196,132,29,.12);color:var(--warning)}
-.dd-blue{background:rgba(45,107,138,.12);color:var(--info)}
-.dd-gray{background:var(--gray-100);color:var(--gray-400)}
-.dd-empty{background:transparent;color:var(--gray-300)}
-.dd-today{outline:2px solid var(--primary);outline-offset:-1px}
-
-.grid-legend{display:flex;gap:14px;padding-left:56px;margin-top:8px}
-.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gray-500);transition:color .3s}
-.legend-dot{width:10px;height:10px;border-radius:3px}
-.lg-green{background:rgba(45,134,89,.15)}
-.lg-amber{background:rgba(196,132,29,.12)}
-.lg-blue{background:rgba(45,107,138,.12)}
-
-/* Stats */
-.stats-grid{display:flex;gap:10px;margin-top:8px}
-.stat-card{flex:1;background:var(--gray-50);border-radius:12px;padding:14px;text-align:center;transition:background .3s}
-.stat-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:var(--text-primary);transition:color .3s}
-.stat-label{font-size:10px;color:var(--gray-500);margin-top:2px;transition:color .3s}
-
-/* Conditions */
-.condition-row{display:flex;align-items:center;gap:12px;background:rgba(45,107,138,.06);border:1px solid rgba(45,107,138,.15);border-radius:12px;padding:14px 16px;margin-top:8px;transition:all .3s}
-.cond-emoji{font-size:22px}
-.cond-info{flex:1}
-.cond-name{font-size:14px;font-weight:600;color:var(--info)}
-.cond-detail{font-size:12px;color:var(--gray-400);margin-top:1px}
-.cond-end-btn{font-size:12px;font-weight:600;color:var(--info);background:rgba(45,107,138,.12);border:none;border-radius:8px;padding:8px 16px;cursor:pointer;transition:background .15s}
-.cond-end-btn:hover{background:rgba(45,107,138,.2)}
-
-/* Divider */
-.sheet-divider{height:1px;background:var(--gray-100);margin:20px 0 0;transition:background .3s}
-
-/* Dark Mode */
-.dark{--bg:#121110;--surface:#1A1815;--text-primary:#F5F4F2;--text-secondary:#9C9790;--gray-50:#1E1C19;--gray-100:#3E3B35;--gray-200:#3E3B35;--gray-300:#5C5850;--gray-400:#7A756E;--gray-500:#9C9790;background:var(--bg)}
-.dark .bottom-sheet{box-shadow:0 -8px 40px rgba(0,0,0,.3)}
-.dark .close-btn{background:var(--gray-100);color:var(--gray-400)}
-.dark .condition-row{background:rgba(45,107,138,.1);border-color:rgba(45,107,138,.25)}
-
-/* Behind phone: faded home screen content */
+.bs-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:150}
+.bs{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:24px 24px 0 0;z-index:200;max-height:80%;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.12)}
+.bs::-webkit-scrollbar{display:none}
+.bs-handle{display:flex;justify-content:center;padding:10px 0 4px}.handle-bar{width:36px;height:4px;background:var(--g300);border-radius:2px}
+.bs-content{padding:0 24px 28px}
+.bs-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.bs-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--tp)}
+.bs-close{width:30px;height:30px;border-radius:50%;background:var(--g100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--g500)}
+.bs-date{font-size:14px;color:var(--tp);font-weight:500;margin-bottom:2px}
+.bs-hijri{font-size:13px;color:var(--g500);display:flex;align-items:center;gap:5px;margin-bottom:16px}
+.prog-sec{display:flex;flex-direction:column;align-items:center;padding:18px 0;margin-bottom:14px;background:var(--g50);border-radius:14px}
+.big-ring{position:relative;width:100px;height:100px;margin-bottom:10px}
+.big-ring svg{transform:rotate(-90deg);width:100px;height:100px}
+.brt{fill:none;stroke:var(--g100);stroke-width:7}
+.brf{fill:none;stroke:var(--primary);stroke-width:7;stroke-linecap:round}
+.big-ring-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.big-ring-num{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:var(--tp)}
+.big-ring-lbl{font-size:10px;color:var(--ts)}
+.stat-break{display:flex;gap:14px;margin-top:4px}
+.stat-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ts);font-family:'JetBrains Mono',monospace}
+.stat-dot{width:9px;height:9px;border-radius:3px}
+.bs-sec-title{font-family:'DM Serif Display',serif;font-size:16px;color:var(--tp);margin-bottom:10px;margin-top:16px}
+.strk-big{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.wk-grid{margin-bottom:6px}.wk-hdr{display:flex;gap:4px;margin-bottom:4px;padding-left:52px}
+.wk-h{width:26px;text-align:center;font-size:9px;font-weight:600;color:var(--g400)}
+.wk-row{display:flex;gap:4px;margin-bottom:3px;align-items:center}
+.wk-lbl{width:48px;font-size:9px;color:var(--g400);font-weight:500;flex-shrink:0}
+.dd{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600}
+.dd-g{background:rgba(45,134,89,.15);color:var(--success)}.dd-a{background:rgba(196,132,29,.12);color:var(--warning)}.dd-b{background:rgba(45,107,138,.12);color:var(--info)}.dd-e{background:transparent;color:var(--g300)}.dd-t{outline:2px solid var(--primary);outline-offset:-1px}
+.stats-row{display:flex;gap:8px;margin-top:8px}
+.stat-card{flex:1;background:var(--g50);border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--tp)}
+.stat-lbl{font-size:9px;color:var(--g500);margin-top:2px}
+.cond-row{display:flex;align-items:center;gap:10px;background:rgba(45,107,138,.06);border:1px solid rgba(45,107,138,.15);border-radius:10px;padding:12px 14px;margin-top:8px}
+.bs-divider{height:1px;background:var(--g100);margin:16px 0}
 .faded-home{padding:60px 16px 16px;opacity:.3;pointer-events:none}
-.faded-card{background:var(--surface);border-radius:12px;height:140px;margin-bottom:12px;box-shadow:0 1px 3px rgba(26,24,21,.06)}
-.faded-item{background:var(--surface);border-radius:12px;height:56px;margin-bottom:8px;box-shadow:0 1px 3px rgba(26,24,21,.06)}
+.faded-card2{background:var(--surface);border-radius:12px;height:120px;margin-bottom:12px;box-shadow:0 1px 3px rgba(26,24,21,.06)}
+.faded-item2{background:var(--surface);border-radius:12px;height:56px;margin-bottom:8px;box-shadow:0 1px 3px rgba(26,24,21,.06)}
 </style>
 </head>
 <body>
-
-<div class="controls">
-  <div class="toggle-label" id="toggleLabel">
-    <span>☀️ Light</span>
-    <div class="toggle-switch" id="themeToggle"></div>
-    <span>🌙 Dark</span>
-  </div>
+<div class="page-header">
+  <div class="page-title">Summary Bottom Sheet</div>
+  <div class="page-subtitle">Appears when tapping the summary card on Home | <a href="../docs/spec.html#screen-home">Back to Spec</a></div>
 </div>
 
-<div class="devices">
-  <!-- Phone with bottom sheet -->
-  <div class="phone-frame">
-    <div class="phone-screen" id="screen">
-      <div class="dynamic-island"></div>
+<div class="row">
+<div class="phone-frame"><div class="ds phone">
+<div class="dyn-isl"></div>
+<div class="faded-home">
+  <div class="faded-card2"></div>
+  <div class="faded-item2"></div>
+  <div class="faded-item2"></div>
+  <div class="faded-item2"></div>
+</div>
+<div class="bs-overlay"></div>
+<div class="bs">
+  <div class="bs-handle"><div class="handle-bar"></div></div>
+  <div class="bs-content">
+    <div class="bs-hdr"><div class="bs-title">Today's Summary</div><button class="bs-close">✕</button></div>
+    <div class="bs-date">Wednesday, April 2, 2026</div>
+    <div class="bs-hijri"><span>☀</span><span>Day of 14 Shawwal 1447 AH</span></div>
 
-      <!-- Faded home behind -->
-      <div class="faded-home">
-        <div class="faded-card"></div>
-        <div class="faded-item"></div>
-        <div class="faded-item"></div>
-        <div class="faded-item"></div>
-        <div class="faded-item"></div>
+    <div class="prog-sec">
+      <div class="big-ring">
+        <svg viewBox="0 0 96 96"><circle class="brt" cx="48" cy="48" r="42"/><circle class="brf" cx="48" cy="48" r="42" stroke-dasharray="264" stroke-dashoffset="106"/></svg>
+        <div class="big-ring-txt"><div class="big-ring-num">3/5</div><div class="big-ring-lbl">goals met</div></div>
       </div>
-
-      <!-- Backdrop -->
-      <div class="backdrop"></div>
-
-      <!-- Bottom Sheet -->
-      <div class="bottom-sheet">
-        <div class="sheet-handle"><div class="handle-bar"></div></div>
-        <div class="sheet-content">
-
-          <div class="sheet-header">
-            <div class="sheet-title">Today's Summary</div>
-            <button class="close-btn">✕</button>
-          </div>
-
-          <div class="sheet-dates">
-            <div class="sheet-date">Tuesday, April 1, 2026</div>
-            <div class="sheet-hijri"><span>☀</span><span>Day of 13 Shawwal 1447 AH</span></div>
-          </div>
-
-          <!-- Progress -->
-          <div class="progress-section">
-            <div class="big-ring">
-              <svg viewBox="0 0 120 120">
-                <circle class="track" cx="60" cy="60" r="52"/>
-                <circle class="fill" cx="60" cy="60" r="52" stroke-dasharray="327" stroke-dashoffset="131"/>
-              </svg>
-              <div class="big-ring-text">
-                <div class="big-ring-num">3/5</div>
-                <div class="big-ring-label">goals met</div>
-              </div>
-            </div>
-            <div class="status-breakdown">
-              <div class="status-item"><div class="status-dot dot-done"></div>3 Done</div>
-              <div class="status-item"><div class="status-dot dot-upcoming"></div>1 Pending</div>
-              <div class="status-item"><div class="status-dot dot-excused"></div>1 Excused</div>
-            </div>
-          </div>
-
-          <!-- Streak -->
-          <div class="section-label">All-Goals Streak</div>
-          <div class="streak-highlight">
-            <span class="streak-fire">🔥</span>
-            <span class="streak-num">12</span>
-            <span class="streak-unit">consecutive days</span>
-          </div>
-
-          <div class="week-grid">
-            <div class="day-headers">
-              <div class="day-hdr">M</div>
-              <div class="day-hdr">T</div>
-              <div class="day-hdr">W</div>
-              <div class="day-hdr">T</div>
-              <div class="day-hdr">F</div>
-              <div class="day-hdr">S</div>
-              <div class="day-hdr">S</div>
-            </div>
-            <div class="week-row">
-              <span class="week-label">2 wks ago</span>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-amber">⅗</div>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-green">✓</div>
-            </div>
-            <div class="week-row">
-              <span class="week-label">Last week</span>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-blue">⊘</div>
-              <div class="day-dot dd-green">✓</div>
-            </div>
-            <div class="week-row">
-              <span class="week-label">This week</span>
-              <div class="day-dot dd-green">✓</div>
-              <div class="day-dot dd-amber dd-today">⅗</div>
-              <div class="day-dot dd-empty">·</div>
-              <div class="day-dot dd-empty">·</div>
-              <div class="day-dot dd-empty">·</div>
-              <div class="day-dot dd-empty">·</div>
-              <div class="day-dot dd-empty">·</div>
-            </div>
-          </div>
-          <div class="grid-legend">
-            <div class="legend-item"><div class="legend-dot lg-green"></div>All met</div>
-            <div class="legend-item"><div class="legend-dot lg-amber"></div>Partial</div>
-            <div class="legend-item"><div class="legend-dot lg-blue"></div>Excused</div>
-          </div>
-
-          <div class="sheet-divider"></div>
-
-          <!-- Stats -->
-          <div class="section-label">Today's Stats</div>
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-val">1h 15m</div>
-              <div class="stat-label">Time tracked</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-val">3</div>
-              <div class="stat-label">Entries logged</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-val">Spiritual</div>
-              <div class="stat-label">Most active</div>
-            </div>
-          </div>
-
-          <div class="sheet-divider"></div>
-
-          <!-- Active Conditions -->
-          <div class="section-label">Active Conditions</div>
-          <div class="condition-row">
-            <span class="cond-emoji">✈️</span>
-            <div class="cond-info">
-              <div class="cond-name">Traveling</div>
-              <div class="cond-detail">Day 4 · Started Mar 29</div>
-            </div>
-            <button class="cond-end-btn">End</button>
-          </div>
-
-        </div>
+      <div class="stat-break">
+        <div class="stat-item"><div class="stat-dot" style="background:var(--success)"></div>3 Done</div>
+        <div class="stat-item"><div class="stat-dot" style="background:var(--g300)"></div>1 Pending</div>
+        <div class="stat-item"><div class="stat-dot" style="background:var(--info)"></div>1 Excused</div>
       </div>
+    </div>
+
+    <div class="bs-sec-title">All-Goals Streak</div>
+    <div class="strk-big"><span style="font-size:24px">🔥</span><span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--accent)">12</span><span style="font-size:13px;color:var(--ts)">consecutive days</span></div>
+
+    <div class="wk-grid">
+      <div class="wk-hdr"><div class="wk-h">M</div><div class="wk-h">T</div><div class="wk-h">W</div><div class="wk-h">T</div><div class="wk-h">F</div><div class="wk-h">S</div><div class="wk-h">S</div></div>
+      <div class="wk-row"><span class="wk-lbl">2 wks ago</span><div class="dd dd-g">✓</div><div class="dd dd-g">✓</div><div class="dd dd-a">⅗</div><div class="dd dd-g">✓</div><div class="dd dd-g">✓</div><div class="dd dd-g">✓</div><div class="dd dd-g">✓</div></div>
+      <div class="wk-row"><span class="wk-lbl">Last week</span><div class="dd dd-g">✓</div><div class="dd dd-g">✓</div><div class="dd dd-g">✓</div><div class="dd dd-g">✓</div><div class="dd dd-g">✓</div><div class="dd dd-b">⊘</div><div class="dd dd-g">✓</div></div>
+      <div class="wk-row"><span class="wk-lbl">This week</span><div class="dd dd-g">✓</div><div class="dd dd-g">✓</div><div class="dd dd-a dd-t">⅗</div><div class="dd dd-e">·</div><div class="dd dd-e">·</div><div class="dd dd-e">·</div><div class="dd dd-e">·</div></div>
+    </div>
+
+    <div class="bs-divider"></div>
+    <div class="bs-sec-title">Today's Stats</div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val">1h 15m</div><div class="stat-lbl">Time tracked</div></div>
+      <div class="stat-card"><div class="stat-val">3</div><div class="stat-lbl">Entries logged</div></div>
+      <div class="stat-card"><div class="stat-val">Spiritual</div><div class="stat-lbl">Most active</div></div>
+    </div>
+
+    <div class="bs-divider"></div>
+    <div class="bs-sec-title">Active Conditions</div>
+    <div class="cond-row">
+      <span style="font-size:20px">✈️</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--info)">Traveling</div><div style="font-size:11px;color:var(--g400)">Day 5 · Started Mar 29</div></div>
+      <button style="font-size:11px;font-weight:600;color:var(--info);background:rgba(45,107,138,.12);border:none;border-radius:6px;padding:6px 12px;cursor:pointer">End</button>
     </div>
   </div>
 </div>
-
-<script>
-document.getElementById('toggleLabel').addEventListener('click', function() {
-  var t = document.getElementById('themeToggle');
-  t.classList.toggle('active');
-  document.getElementById('screen').classList.toggle('dark');
-});
-</script>
+</div></div>
+</div>
 </body>
 </html>

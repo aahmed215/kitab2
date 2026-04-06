@@ -3,412 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kitab — Needs Attention</title>
+<title>Kitab — Needs Attention (See All)</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared-styles.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--primary:#0D7377;--accent:#C8963E;--bg:#FAFAF8;--surface:#fff;--tp:#1A1815;--ts:#5C5850;--g50:#F5F4F2;--g100:#E8E6E3;--g200:#D4D1CC;--g300:#B8B4AE;--g400:#9C9790;--g500:#7A756E;--g700:#3E3B35;--success:#2D8659;--warning:#C4841D;--error:#C43D3D;--info:#2D6B8A}
-body{font-family:'Inter',sans-serif;background:#C8C4Be;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px;gap:12px}
-.hint{font-size:13px;color:#5C5850;text-align:center;max-width:420px;line-height:1.6}.hint strong{color:#1A1815}
-.pf{background:#111;border-radius:48px;padding:12px;box-shadow:0 20px 70px rgba(0,0,0,.3);width:393px;height:852px;position:relative}
-.ps{width:100%;height:100%;border-radius:38px;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);position:relative}
-.dyn-isl{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#000;border-radius:18px;z-index:100}
-.stat-bar{height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 4px;font-size:14px;font-weight:600;color:var(--tp);flex-shrink:0}
-
-/* Screen switching */
-.screen{display:none;flex-direction:column;flex:1;overflow:hidden}.screen.active{display:flex}
-
-/* ===== HOME SCREEN (simplified) ===== */
-.home-ab{display:flex;justify-content:space-between;align-items:center;padding:4px 20px 8px;flex-shrink:0}
-.home-ab h1{font-family:'DM Serif Display',serif;font-size:28px;font-weight:400;color:var(--tp)}
-.ib{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;border-radius:10px;position:relative}
-.ib svg{width:22px;height:22px;color:var(--tp)}.nd{position:absolute;top:8px;right:8px;width:7px;height:7px;background:var(--error);border-radius:50%}
-.home-ct{flex:1;overflow-y:auto;padding:0 16px 16px}.home-ct::-webkit-scrollbar{display:none}
-.sc{background:var(--surface);border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(26,24,21,.08);margin-bottom:14px;position:relative;overflow:hidden}
-.gp{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%230D7377' stroke-width='0.8'%3E%3Cpolygon points='30,5 50,17.5 50,42.5 30,55 10,42.5 10,17.5'/%3E%3C/g%3E%3C/svg%3E");background-size:60px 60px}
-.sc-inner{position:relative;z-index:1;display:flex;gap:16px;align-items:center}
-.sc-text{flex:1}.greet{font-family:'DM Serif Display',serif;font-size:20px;color:var(--tp);margin-bottom:2px}
-.date-ln{font-size:13px;color:var(--ts);margin-bottom:2px}.hijri-ln{font-size:12px;color:var(--g500);display:flex;align-items:center;gap:5px;margin-bottom:10px}
-.sc-stat{font-size:14px;color:var(--ts);margin-bottom:4px}.strk-row{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--accent);margin-top:6px}
-.rw{flex-shrink:0;position:relative;width:76px;height:76px}.rw svg{transform:rotate(-90deg);width:76px;height:76px}
-.rt2{fill:none;stroke:var(--g100);stroke-width:6}.rf2{fill:none;stroke:var(--primary);stroke-width:6;stroke-linecap:round}
-.rtx{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;color:var(--tp)}
-.sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;margin-top:4px}
-.sh h2{font-family:'DM Serif Display',serif;font-size:18px;font-weight:400;color:var(--tp)}
-.sh.att h2{color:var(--warning)}
-.see-all{font-size:12px;color:var(--primary);text-decoration:none;font-weight:500;cursor:pointer}
-.al{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.ac{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:12px;padding:13px 14px;box-shadow:0 1px 3px rgba(26,24,21,.08);cursor:pointer;transition:all .2s}
-.ac.faded{opacity:.6}
-.si{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-.si-done{background:var(--success);color:#fff}.si-prog{background:var(--g200);color:var(--g500)}.si-pend{background:var(--warning);color:#fff}.si-exc{background:var(--info);color:#fff}
-.ai{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.ainfo{flex:1}.aname{font-size:13px;font-weight:500;color:var(--tp)}.asub{font-size:11px;color:var(--ts);font-family:'JetBrains Mono',monospace;margin-top:1px}
-.sbadge{font-size:11px;font-weight:500;color:var(--accent);font-family:'JetBrains Mono',monospace;flex-shrink:0}
-.attc{display:flex;align-items:center;gap:12px;background:rgba(196,132,29,.06);border:1px solid rgba(196,132,29,.15);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .2s}
-.attc:active{transform:scale(.98)}
-.att-name{font-size:13px;font-weight:500;color:var(--tp)}.att-sub{font-size:11px;color:var(--g400);margin-top:1px}
-
-/* ===== NEEDS ATTENTION SCREEN ===== */
-.na-ab{display:flex;align-items:center;padding:4px 12px 8px;flex-shrink:0;gap:8px;border-bottom:1px solid var(--g100)}
-.back-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;border-radius:10px;font-size:22px;color:var(--primary);transition:background .15s}
-.back-btn:hover{background:var(--g50)}
-.na-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--tp);flex:1}
-.select-btn{font-size:12px;font-weight:600;color:var(--primary);background:transparent;border:none;cursor:pointer;padding:8px 12px}
-
-/* Filters */
-.filter-row{display:flex;align-items:center;gap:8px;padding:10px 16px;flex-shrink:0;overflow-x:auto;border-bottom:1px solid var(--g100)}
-.filter-row::-webkit-scrollbar{display:none}
-.filter-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--g200);border-radius:10px;background:var(--surface);cursor:pointer;flex-shrink:0;color:var(--g500);font-size:16px}
-.fchip{padding:7px 14px;border-radius:18px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--g200);background:var(--surface);color:var(--ts);white-space:nowrap;flex-shrink:0;transition:all .15s}
+.back-btn{font-size:22px;color:var(--primary);background:none;border:none;padding:4px;cursor:pointer}
+.filter-row{display:flex;align-items:center;gap:6px;padding:8px 16px;flex-shrink:0;overflow-x:auto;border-bottom:1px solid var(--g100)}.filter-row::-webkit-scrollbar{display:none}
+.fbtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--g200);border-radius:9px;background:var(--surface);cursor:pointer;flex-shrink:0;color:var(--g500);font-size:14px}
+.fchip{padding:6px 13px;border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--g200);background:var(--surface);color:var(--ts);white-space:nowrap;flex-shrink:0}
 .fchip.active{border-color:var(--primary);background:rgba(13,115,119,.06);color:var(--primary);font-weight:600}
-.search-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--g200);border-radius:10px;background:var(--surface);cursor:pointer;flex-shrink:0;color:var(--g500);font-size:14px;margin-left:auto}
-
-/* Search bar */
-.search-bar{display:none;padding:8px 16px;flex-shrink:0;border-bottom:1px solid var(--g100)}
-.search-bar.open{display:block}
-.search-input{width:100%;padding:10px 14px 10px 36px;border:1.5px solid var(--g200);border-radius:12px;font-size:13px;font-family:'Inter',sans-serif;background:var(--surface);outline:none;position:relative}
-.search-input:focus{border-color:var(--primary)}
-.search-wrap{position:relative}
-.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:14px}
-
-/* Content */
-.na-ct{flex:1;overflow-y:auto;padding:16px}.na-ct::-webkit-scrollbar{display:none}
-
-/* Day separator */
-.day-sep{display:flex;align-items:center;gap:8px;margin-bottom:10px;margin-top:16px}
-.day-sep:first-child{margin-top:0}
-.day-sep-text{font-family:'DM Serif Display',serif;font-size:15px;color:var(--tp);white-space:nowrap}
-.day-sep-line{flex:1;height:1px;background:var(--g100)}
-.day-cond{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(45,107,138,.08);border-radius:12px;font-size:10px;color:var(--info);cursor:pointer;white-space:nowrap}
-
-/* Attention cards in list */
-.na-card{display:flex;align-items:center;gap:12px;background:rgba(196,132,29,.05);border:1px solid rgba(196,132,29,.12);border-radius:12px;padding:13px 14px;cursor:pointer;margin-bottom:8px;transition:all .2s}
+.day-sep{display:flex;align-items:center;gap:8px;margin:16px 0 10px}.day-sep:first-child{margin-top:8px}
+.day-text{font-family:'DM Serif Display',serif;font-size:14px;color:var(--tp);white-space:nowrap}
+.day-line{flex:1;height:1px;background:var(--g100)}
+.day-cond{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(45,107,138,.08);border-radius:12px;font-size:10px;color:var(--info);white-space:nowrap;cursor:pointer}
+.na-card{display:flex;align-items:center;gap:12px;background:rgba(196,132,29,.05);border:1px solid rgba(196,132,29,.12);border-radius:12px;padding:13px 14px;cursor:pointer;margin-bottom:8px}
 .na-card:active{transform:scale(.98)}
-.na-card.selected{border-color:var(--primary);background:rgba(13,115,119,.04)}
-.na-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--g300);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;font-size:12px;color:transparent}
-.na-check.checked{background:var(--primary);border-color:var(--primary);color:#fff}
-.na-info{flex:1;min-width:0}
-
-/* Bulk action bar */
-.bulk-bar{display:none;padding:10px 16px;background:var(--surface);border-top:1px solid var(--g100);flex-shrink:0;gap:8px}
-.bulk-bar.open{display:flex}
-.bulk-count{font-size:13px;font-weight:600;color:var(--tp);flex:1;display:flex;align-items:center}
-.bulk-btn{padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .15s}
-.bulk-miss{background:rgba(196,61,61,.08);color:var(--error)}
-.bulk-reason{background:rgba(45,107,138,.08);color:var(--info)}
-
-/* Action bottom sheet */
-.bs-backdrop{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
-.bs-backdrop.open{opacity:1;pointer-events:auto}
-.action-bs{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:20px 20px 0 0;z-index:200;max-height:0;overflow:hidden;transition:max-height .3s;box-shadow:0 -8px 32px rgba(0,0,0,.1)}
-.action-bs.open{max-height:50%}
-.abs-handle{display:flex;justify-content:center;padding:10px 0 6px}.abs-bar{width:36px;height:4px;background:var(--g300);border-radius:2px}
-.abs-body{padding:0 24px 28px}
-.abs-title{font-family:'DM Serif Display',serif;font-size:18px;color:var(--tp);margin-bottom:4px}
-.abs-sub{font-size:12px;color:var(--g400);margin-bottom:16px}
-.abs-option{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--g100);border-radius:12px;cursor:pointer;margin-bottom:8px;transition:all .15s;font-size:14px;font-weight:500;color:var(--tp)}
-.abs-option:hover{background:var(--g50)}
-.abs-option:active{transform:scale(.98)}
-.abs-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-
-/* Bottom nav */
-.bnav{display:flex;justify-content:space-around;align-items:center;height:58px;background:var(--surface);border-top:1px solid var(--g100);flex-shrink:0;padding-bottom:4px;z-index:50}
-.ni{display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;padding:4px 8px;border:none;background:transparent}
-.ni svg{width:21px;height:21px}.ni.a svg{color:var(--primary)}.ni:not(.a) svg{color:var(--g400)}
-.nl{font-size:9px;font-weight:500}.ni.a .nl{color:var(--primary)}.ni:not(.a) .nl{color:var(--g400)}
-
-.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(80px);background:#2A2722;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:1000;transition:transform .3s;box-shadow:0 6px 20px rgba(0,0,0,.15)}
-.toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
+<div class="page-header">
+  <div class="page-title">Needs Attention — See All</div>
+  <div class="page-subtitle">Full list of unaddressed past periods | <a href="../docs/spec.html#screen-home">Back to Spec</a></div>
+</div>
 
-<div class="hint"><strong>Tap "See All (5)"</strong> on the Home screen to navigate to the Needs Attention screen. Tap cards, use filters, try select mode, and navigate back.</div>
-
-<div class="pf"><div class="ps">
+<div class="row">
+<div class="phone-frame"><div class="ds phone">
 <div class="dyn-isl"></div>
 <div class="stat-bar"><span>8:00 AM</span><span style="font-size:11px">📶 🔋</span></div>
-
-<!-- ===== HOME SCREEN ===== -->
-<div class="screen active" id="homeScreen">
-  <div class="home-ab"><h1>Kitab</h1><button class="ib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div class="nd"></div></button></div>
-  <div class="home-ct">
-    <div class="sc"><div class="gp"></div><div class="sc-inner"><div class="sc-text"><div class="greet">Assalamu Alaikum, Ahmed</div><div class="date-ln">Thursday, April 3, 2026</div><div class="hijri-ln"><span>☀</span><span>Day of 15 Shawwal 1447 AH</span></div><div class="sc-stat">1 of 5 goals met today</div><div class="strk-row">🧊 <span>12 day all-goals streak (frozen)</span></div></div><div class="rw"><svg viewBox="0 0 72 72"><circle class="rt2" cx="36" cy="36" r="32"/><circle class="rf2" cx="36" cy="36" r="32" stroke-dasharray="201" stroke-dashoffset="161"/></svg><div class="rtx">1/5</div></div></div></div>
-
-    <div class="sh"><h2>Scheduled Today</h2></div>
-    <div class="al">
-      <div class="ac faded"><div class="si si-done">✓</div><div class="ai" style="background:rgba(13,115,119,.1)">📖</div><div class="ainfo"><div class="aname">Read Quran</div><div class="asub">15 min · Surah Ya-Sin</div></div><div class="sbadge">🔥 32d</div></div>
-      <div class="ac"><div class="si si-prog">○</div><div class="ai" style="background:rgba(13,115,119,.1)">🕐</div><div class="ainfo"><div class="aname">Pray on Time</div><div class="asub">Fajr · On time</div></div><div class="sbadge">🧊 47d</div></div>
-      <div class="ac"><div class="si si-prog">○</div><div class="ai" style="background:rgba(45,107,138,.1)">💧</div><div class="ainfo"><div class="aname">Drink Water</div><div class="asub">1 / 8 glasses</div></div><div class="sbadge">🧊 9d</div></div>
-      <div class="ac"><div class="si si-prog">○</div><div class="ai" style="background:rgba(200,150,62,.1)">📝</div><div class="ainfo"><div class="aname">Study Arabic</div></div><div class="sbadge">🧊 5d</div></div>
-    </div>
-
-    <div class="sh att"><h2>Needs Attention</h2><span class="see-all" id="seeAllBtn">See All (5)</span></div>
-    <div class="al">
-      <div class="attc"><div class="si si-pend">?</div><div class="ainfo"><div class="att-name">Morning Run</div><div class="att-sub">Expected yesterday · 8:00 AM – 9:00 AM</div></div></div>
-      <div class="attc"><div class="si si-pend">?</div><div class="ainfo"><div class="att-name">Study Arabic</div><div class="att-sub">Expected yesterday · 7:00 PM – 8:00 PM</div></div></div>
-      <div class="attc"><div class="si si-pend">?</div><div class="ainfo"><div class="att-name">Drink Water</div><div class="att-sub">Expected yesterday · 2 / 8 glasses</div></div></div>
-    </div>
-  </div>
+<div class="app-bar">
+  <div style="display:flex;align-items:center;gap:8px"><button class="back-btn">‹</button><span style="font-family:'DM Serif Display',serif;font-size:22px">Needs Attention</span></div>
 </div>
 
-<!-- ===== NEEDS ATTENTION SCREEN ===== -->
-<div class="screen" id="naScreen">
-  <div class="na-ab">
-    <button class="back-btn" id="backBtn">‹</button>
-    <div class="na-title">Needs Attention</div>
-    <button class="select-btn" id="selectBtn">Select</button>
-  </div>
-
-  <div class="filter-row">
-    <button class="search-btn" id="searchToggle" title="Search">🔍</button>
-    <div class="fchip active" data-filter="all">All</div>
-    <div class="fchip" data-filter="today">Today</div>
-    <div class="fchip" data-filter="week">This Week</div>
-    <div class="fchip" data-filter="spiritual">🕌 Spiritual</div>
-    <div class="fchip" data-filter="health">🏃 Health</div>
-  </div>
-
-  <div class="search-bar" id="searchBar">
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input class="search-input" placeholder="Search by activity name..." style="padding-left:36px">
-    </div>
-  </div>
-
-  <div class="na-ct" id="naContent">
-    <!-- Yesterday -->
-    <div class="day-sep">
-      <span class="day-sep-text">Yesterday, April 2</span>
-      <div class="day-sep-line"></div>
-      <div class="day-cond">✈️ Traveling (Day 5)</div>
-    </div>
-
-    <div class="na-card" data-id="1" data-date="Wed, April 2, 2026">
-      <div class="na-check" data-check="1"></div>
-      <div class="si si-pend">?</div>
-      <div class="ai" style="background:rgba(45,134,89,.1)">🏃</div>
-      <div class="na-info"><div class="att-name">Morning Run</div><div class="att-sub">Expected 8:00 AM – 9:00 AM</div></div>
-    </div>
-    <div class="na-card" data-id="2" data-date="Wed, April 2, 2026">
-      <div class="na-check" data-check="2"></div>
-      <div class="si si-pend">?</div>
-      <div class="ai" style="background:rgba(200,150,62,.1)">📝</div>
-      <div class="na-info"><div class="att-name">Study Arabic</div><div class="att-sub">Expected 7:00 PM – 8:00 PM</div></div>
-    </div>
-    <div class="na-card" data-id="3" data-date="Wed, April 2, 2026">
-      <div class="na-check" data-check="3"></div>
-      <div class="si si-pend">?</div>
-      <div class="ai" style="background:rgba(45,107,138,.1)">💧</div>
-      <div class="na-info"><div class="att-name">Drink Water</div><div class="att-sub">Expected all day · 2/8 logged</div></div>
-    </div>
-
-    <!-- 2 days ago -->
-    <div class="day-sep">
-      <span class="day-sep-text">Tuesday, March 31</span>
-      <div class="day-sep-line"></div>
-      <div class="day-cond">✈️ Traveling (Day 3)</div>
-    </div>
-
-    <div class="na-card" data-id="4" data-date="Tue, March 31, 2026">
-      <div class="na-check" data-check="4"></div>
-      <div class="si si-pend">?</div>
-      <div class="ai" style="background:rgba(45,134,89,.1)">🏃</div>
-      <div class="na-info"><div class="att-name">Morning Run</div><div class="att-sub">Expected 8:00 AM – 9:00 AM</div></div>
-    </div>
-    <div class="na-card" data-id="5" data-date="Tue, March 31, 2026">
-      <div class="na-check" data-check="5"></div>
-      <div class="si si-pend">?</div>
-      <div class="ai" style="background:rgba(200,150,62,.1)">📝</div>
-      <div class="na-info"><div class="att-name">Study Arabic</div><div class="att-sub">Expected 7:00 PM – 8:00 PM</div></div>
-    </div>
-  </div>
-
-  <!-- Bulk action bar -->
-  <div class="bulk-bar" id="bulkBar">
-    <div class="bulk-count"><span id="bulkCount">0</span>&nbsp;selected</div>
-    <button class="bulk-btn bulk-miss" id="bulkMiss">Mark as Missed</button>
-    <button class="bulk-btn bulk-reason" id="bulkReason">Add Reason</button>
-  </div>
+<div class="filter-row">
+  <button class="fbtn">🔍</button>
+  <div class="fchip active">All</div>
+  <div class="fchip">Today</div>
+  <div class="fchip">This Week</div>
+  <div class="fchip">🕌 Spiritual</div>
+  <div class="fchip">🏃 Health</div>
 </div>
 
-<!-- Action bottom sheet -->
-<div class="bs-backdrop" id="absBackdrop"></div>
-<div class="action-bs" id="actionBS">
-  <div class="abs-handle"><div class="abs-bar"></div></div>
-  <div class="abs-body">
-    <div class="abs-title" id="absTitle">Morning Run</div>
-    <div class="abs-sub" id="absSub">Expected yesterday · 8:00 AM – 9:00 AM</div>
-    <div class="abs-option" id="optRecord"><div class="abs-icon" style="background:rgba(13,115,119,.1)">⏱️</div>Record Activity</div>
-    <div class="abs-option" id="optLink"><div class="abs-icon" style="background:rgba(13,115,119,.1)">🔗</div>Link Activity</div>
-    <div class="abs-option" id="optMiss"><div class="abs-icon" style="background:rgba(196,61,61,.08)">—</div>Mark as Missed</div>
-    <div class="abs-option" id="optReason"><div class="abs-icon" style="background:rgba(45,107,138,.08)">⊘</div>Add Reason</div>
+<div class="ct" style="padding:16px">
+  <div class="day-sep">
+    <span class="day-text">Yesterday, April 1</span>
+    <div class="day-line"></div>
+    <div class="day-cond">✈️ Traveling (Day 4)</div>
   </div>
+
+  <div class="na-card"><div class="si si-pend">?</div><div class="ai" style="background:rgba(45,134,89,.1)">🏃</div><div class="ainfo"><div class="aname">Morning Run</div><div class="asub">Expected 8:00 AM – 9:00 AM</div></div></div>
+  <div class="na-card"><div class="si si-pend">?</div><div class="ai" style="background:rgba(200,150,62,.1)">📝</div><div class="ainfo"><div class="aname">Study Arabic</div><div class="asub">Expected 7:00 PM – 8:00 PM</div></div></div>
+  <div class="na-card"><div class="si si-pend">?</div><div class="ai" style="background:rgba(45,107,138,.1)">💧</div><div class="ainfo"><div class="aname">Drink Water</div><div class="asub">Expected all day · 2/8 logged</div></div></div>
+
+  <div class="day-sep">
+    <span class="day-text">Monday, March 31</span>
+    <div class="day-line"></div>
+    <div class="day-cond">✈️ Traveling (Day 3)</div>
+  </div>
+
+  <div class="na-card"><div class="si si-pend">?</div><div class="ai" style="background:rgba(45,134,89,.1)">🏃</div><div class="ainfo"><div class="aname">Morning Run</div><div class="asub">Expected 8:00 AM – 9:00 AM</div></div></div>
+  <div class="na-card"><div class="si si-pend">?</div><div class="ai" style="background:rgba(200,150,62,.1)">📝</div><div class="ainfo"><div class="aname">Study Arabic</div><div class="asub">Expected 7:00 PM – 8:00 PM</div></div></div>
 </div>
 
-<!-- Bottom nav (shared) -->
-<div class="bnav" id="bottomNav">
-  <button class="ni a" id="navHome"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5L12 3l8 8.5z"/></svg><span class="nl">Home</span></button>
+<div class="bnav">
+  <button class="ni a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5L12 3l8 8.5z"/></svg><span class="nl">Home</span></button>
   <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span class="nl">Book</span></button>
   <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18V12h4v6M10 18V8h4v10M16 18V4h4v14"/></svg><span class="nl">Insights</span></button>
   <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="4"/><path d="M17 19v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/></svg><span class="nl">Social</span></button>
   <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg><span class="nl">Profile</span></button>
 </div>
-
 </div></div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-(function(){
-"use strict";
-var selectMode = false;
-var selected = {};
-
-function $(id){return document.getElementById(id)}
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
-  $(id).classList.add('active');
-}
-function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');setTimeout(function(){e.classList.remove('show')},3000)}
-
-// Navigation
-$('seeAllBtn').addEventListener('click',function(){showScreen('naScreen')});
-$('backBtn').addEventListener('click',function(){showScreen('homeScreen');exitSelect()});
-$('navHome').addEventListener('click',function(){showScreen('homeScreen');exitSelect()});
-
-// Filter chips
-document.querySelectorAll('.fchip').forEach(function(chip){
-  chip.addEventListener('click',function(){
-    document.querySelectorAll('.fchip').forEach(function(c){c.classList.remove('active')});
-    chip.classList.add('active');
-  });
-});
-
-// Search toggle
-$('searchToggle').addEventListener('click',function(){
-  $('searchBar').classList.toggle('open');
-  if($('searchBar').classList.contains('open')){
-    $('searchBar').querySelector('input').focus();
-  }
-});
-
-// Card tap → action bottom sheet (only when not in select mode)
-document.querySelectorAll('.na-card').forEach(function(card){
-  card.addEventListener('click',function(){
-    if(selectMode){
-      toggleCardSelect(card);
-      return;
-    }
-    var name=card.querySelector('.att-name').textContent;
-    var sub=card.querySelector('.att-sub').textContent;
-    var date=card.getAttribute('data-date')||'';
-    $('absTitle').textContent=name;
-    $('absSub').textContent=date+(sub?' · '+sub.replace('Expected ',''):'');
-    openActionBS();
-  });
-});
-
-// Home attention cards also tappable
-document.querySelectorAll('.attc').forEach(function(card){
-  card.addEventListener('click',function(){
-    var name=card.querySelector('.att-name').textContent;
-    var sub=card.querySelector('.att-sub').textContent;
-    $('absTitle').textContent=name;
-    $('absSub').textContent=sub;
-    openActionBS();
-  });
-});
-
-function openActionBS(){
-  $('absBackdrop').classList.add('open');
-  $('actionBS').classList.add('open');
-}
-function closeActionBS(){
-  $('absBackdrop').classList.remove('open');
-  $('actionBS').classList.remove('open');
-}
-
-$('absBackdrop').addEventListener('click',closeActionBS);
-
-// Action options
-$('optMiss').addEventListener('click',function(){closeActionBS();toast($('absTitle').textContent+' marked as missed. Undo')});
-$('optReason').addEventListener('click',function(){closeActionBS();toast('Reason added for '+$('absTitle').textContent)});
-$('optRecord').addEventListener('click',function(){closeActionBS();toast('Opening entry form...')});
-$('optLink').addEventListener('click',function(){closeActionBS();toast('Showing unlinked entries...')});
-
-// Select mode
-$('selectBtn').addEventListener('click',function(){
-  if(selectMode){exitSelect()}
-  else{enterSelect()}
-});
-
-function enterSelect(){
-  selectMode=true;
-  $('selectBtn').textContent='Cancel';
-  $('bulkBar').classList.add('open');
-  document.querySelectorAll('.na-check').forEach(function(c){c.style.display='flex'});
-  updateBulkCount();
-}
-
-function exitSelect(){
-  selectMode=false;
-  $('selectBtn').textContent='Select';
-  $('bulkBar').classList.remove('open');
-  selected={};
-  document.querySelectorAll('.na-check').forEach(function(c){c.style.display='none';c.classList.remove('checked');c.textContent=''});
-  document.querySelectorAll('.na-card').forEach(function(c){c.classList.remove('selected')});
-}
-
-function toggleCardSelect(card){
-  var id=card.getAttribute('data-id');
-  var check=card.querySelector('.na-check');
-  if(selected[id]){
-    delete selected[id];
-    check.classList.remove('checked');
-    check.textContent='';
-    card.classList.remove('selected');
-  } else {
-    selected[id]=true;
-    check.classList.add('checked');
-    check.textContent='✓';
-    card.classList.add('selected');
-  }
-  updateBulkCount();
-}
-
-function updateBulkCount(){
-  var count=Object.keys(selected).length;
-  $('bulkCount').textContent=count;
-}
-
-// Hide checkboxes initially
-document.querySelectorAll('.na-check').forEach(function(c){c.style.display='none'});
-
-// Bulk actions
-$('bulkMiss').addEventListener('click',function(){
-  var count=Object.keys(selected).length;
-  if(count===0){toast('Select at least one item');return}
-  toast(count+' item'+(count>1?'s':'')+' marked as missed. Undo');
-  exitSelect();
-});
-$('bulkReason').addEventListener('click',function(){
-  var count=Object.keys(selected).length;
-  if(count===0){toast('Select at least one item');return}
-  toast('Adding reason to '+count+' item'+(count>1?'s':'')+'...');
-  exitSelect();
-});
-
-// Condition chips in day headers
-document.querySelectorAll('.day-cond').forEach(function(c){
-  c.addEventListener('click',function(e){
-    e.stopPropagation();
-    toast('Opening condition details...');
-  });
-});
-
-})();
-</script>
+</div>
 </body>
 </html>
