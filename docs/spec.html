@@ -500,7 +500,7 @@ Activity Template (configuration)
 ├── Fields: what data to capture per entry (13 types)
 ├── Schedule (optional): when the activity is expected
 │   ├── Calendar type (Gregorian / Hijri)
-│   ├── Frequency (daily, weekly, monthly, custom)
+│   ├── Frequency (daily, weekly, monthly, yearly, custom)
 │   └── Time window (specific or dynamic prayer times)
 └── Goals (optional): targets to achieve
     ├── Quick Setup ("do this 3x per week")
@@ -1369,7 +1369,9 @@ Activity Entry (logged instance)
     <h4>2. Schedule (toggle, default OFF)</h4>
     <p>When ON: Calendar type (Gregorian/Hijri), start date, optional end date (with ✕ clear button), repeat frequency, expected entries (once/multiple per period), optional time window (specific or dynamic times).</p>
 
-    <p><strong>Dynamic times</strong> from the <a href="#apis">Aladhan API</a>: Fajr, Sunrise, Duha, Dhuhr, Asr, Maghrib/Sunset, Isha, 1/3 Night, Middle of Night, 2/3 Night. Both start and end must be same type (no mixing). Midnight crossover warning if end ≤ start.</p>
+    <p><strong>Repeat options:</strong> Daily, Weekly (specific days), Monthly (specific days), <strong>Yearly</strong> (specific days/range within a specific month — works with both Gregorian and Hijri calendars, e.g., Ramadan 1-29/30, or January 1-31), Custom Interval (every X days/weeks/months/years).</p>
+
+    <p><strong>Dynamic times</strong> from the <a href="#apis">Aladhan API</a>: Fajr, Sunrise, Duha, Dhuhr, Asr, Maghrib/Sunset, Isha, 1/3 Night, Middle of Night, 2/3 Night. Both start and end must be same type (no mixing). <strong>Optional offset</strong> in minutes: e.g., Sunrise +15 min for Duha, or Fajr -30 min. Midnight crossover warning if end ≤ start.</p>
 
     <p><strong>High-latitude locations:</strong> If sunrise/sunset unavailable, dynamic times fall back to full-day period. Additional setting for adjustment method (Middle of Night, One-Seventh, Angle-Based, Nearest Latitude).</p>
 
@@ -1526,6 +1528,7 @@ Activity Entry (logged instance)
       <tr><td>Daily</td><td>Full day (midnight-midnight Gregorian, sunset-sunset Hijri)</td><td>With time window: narrowed</td></tr>
       <tr><td>Weekly</td><td>Selected days or full week</td><td>Consecutive days: one period or separate (user choice). Week start from Settings.</td></tr>
       <tr><td>Monthly</td><td>Selected days of month</td><td>Consecutive: one or separate. Short month: defaults to last day (not skip).</td></tr>
+      <tr><td>Yearly</td><td>Specific days within a specific month</td><td>Works with Gregorian or Hijri. E.g., Ramadan 1-29/30, Dhul Hijjah 1-9.</td></tr>
       <tr><td>Custom</td><td>Single day per recurrence</td><td>Every X days/weeks/months/years from start date.</td></tr>
     </tbody></table>
     <h3>When Computed</h3>
@@ -1676,7 +1679,7 @@ users (username UNIQUE)
     <p>Email/password (8 char min, no complexity) + 8-digit OTP email verification (via Resend/Supabase) + Google Sign-In + Apple Sign-In. Social sign-in skips email verification.</p>
     <h3>Create Account Flow</h3>
     <div class="flow">
-      <span class="flow-step">Form (name, email, password)</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Form (name, username, email, password)</span><span class="flow-arrow">→</span>
       <span class="flow-step">OTP Verification (8 digits, 1hr expiry)</span><span class="flow-arrow">→</span>
       <span class="flow-step">Data Migration (if anonymous data exists)</span><span class="flow-arrow">→</span>
       <span class="flow-step">Home</span>

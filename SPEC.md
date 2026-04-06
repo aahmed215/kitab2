@@ -962,6 +962,13 @@ When toggled on, the following fields appear:
 - **Daily** — every day
 - **Weekly** — specific days of the week (checkboxes: Mon–Sun) or entire week. Week start day is determined by the user's global setting in Settings.
 - **Monthly** — specific days of the month (1–28/29/30/31) or entire month. Multiple days can be selected. If all selected days are consecutive, the app asks whether to treat them as **one period** (assessed together) or **separate periods** (assessed individually). Non-consecutive days are always separate periods. If a selected day doesn't exist in a given month (e.g., day 31 in a 30-day month, or day 30 in a 29-day Hijri month), the period defaults to the **last day of that month** instead of being skipped. An info note is shown during setup: "If a selected day doesn't exist in a month, the last day of the month is used instead."
+- **Yearly** — specific days or range within a specific month of the year. Works with both Gregorian and Hijri calendars. The user selects a month, then specific days or a day range within that month. Examples:
+  - Ramadan Fasting: Hijri, month = Ramadan, days 1–29/30 (full month)
+  - Day of Arafat: Hijri, month = Dhul Hijjah, day 9
+  - First 9 Days of Dhul Hijjah: Hijri, month = Dhul Hijjah, days 1–9
+  - New Year's resolution: Gregorian, month = January, days 1–31
+  - Same rules as Monthly for consecutive days (one period vs separate), short month handling (default to last day).
+  - The period engine computes when these dates fall each year and generates periods accordingly.
 - **Custom Interval** — every X days, every X weeks, every X months, every X years. Each recurrence spans a **single day** (the day that falls on the interval, computed from the start date). If a time window is set, the period is that window within the single day.
 
 #### Expected Entries
@@ -977,7 +984,9 @@ When toggled on, the following fields appear:
 | Time Window | No | Off | Toggle on/off. When on, the user defines a specific time window for this activity within each period. |
 | Time Type | Yes (if window on) | Specific | **Specific** — fixed clock times (e.g., 8:00 AM – 9:00 AM). **Dynamic** — tied to prayer/astronomical times. Both start and end must be the same type (no mixing). |
 | Window Start | Yes (if window on) | — | The start of the expected time window. |
+| Window Start Offset | No (if dynamic) | 0 | Offset in minutes added to the dynamic start time. Can be positive (after) or negative (before). E.g., Sunrise +15 min for Duha. |
 | Window End | Yes (if window on) | — | The end of the expected time window. |
+| Window End Offset | No (if dynamic) | 0 | Offset in minutes added to the dynamic end time. E.g., Fajr -10 min. |
 
 **Dynamic time options** (availability depends on settings):
 
@@ -2778,7 +2787,8 @@ The "Add Reason" link is small and non-intrusive. Tapping it opens the reason pi
 |--------|------|-------|
 | id | UUID | Primary key |
 | email | Text | Nullable (not required for native-only pre-auth users) |
-| username | Text | Unique. Used for friend search and invite links (kitab.app/add/username). Set during account creation or profile setup. |
+| username | Text | **UNIQUE (case-insensitive).** Used for friend search and invite links (mykitab.app/add/username). Set during account creation. Rules: 3-20 characters, alphanumeric + underscores only, case-insensitive uniqueness. Changeable once every 30 days. |
+| username_changed_at | Timestamp (UTC) | Nullable. Last time username was changed. Used to enforce 30-day change cooldown. |
 | name | Text | |
 | avatar_url | Text | |
 | bio | Text | |
@@ -3025,9 +3035,17 @@ users (username UNIQUE)
  └── settings (1:1, stored in users.settings JSONB)
 ```
 
+### 12.2.1 Soft Delete for Sync
+
+All synced tables include a `deleted_at` column (Timestamp UTC, nullable). When a record is deleted, it is **soft-deleted** (set `deleted_at = now()`) rather than hard-deleted. This allows the sync engine to detect deletions during the pull phase by querying `WHERE updated_at > last_sync OR deleted_at > last_sync`. Hard-deleted records would be invisible to the sync engine.
+
+The following tables have `deleted_at`: users, categories, activities, entries, activity_period_statuses, goal_period_statuses, condition_presets, conditions, routines, routine_entries, routine_period_statuses, routine_goal_period_statuses, friends, activity_shares, competitions, competition_participants, competition_entries, notifications, user_charts, reactions, user_reports, blocked_users.
+
+Soft-deleted records are periodically purged from the database after 30 days (via a scheduled Edge Function or manual cleanup).
+
 ### 12.3 Local Schema (Drift / SQLite — Native Devices Only)
 
-The local schema **mirrors the cloud schema exactly** — same tables, same columns, same constraints. This makes sync straightforward: rows are the same shape in both databases.
+The local schema **mirrors the cloud schema exactly** — same tables, same columns, same constraints (including `deleted_at`). This makes sync straightforward: rows are the same shape in both databases.
 
 **Additional local-only tables:**
 
@@ -3992,7 +4010,10 @@ When the user taps an activity template, they land on a read-only detail view �
   - List of categories with icon, color, name, activity count
   - Tap → edit (name, icon, color)
   - Drag to reorder
-  - Swipe left → delete (with confirmation if activities exist: "Move X activities to which category?")
+  - Swipe left → delete. Deletion rules:
+    - **If category has linked activities:** Prompt "Move X activities to which category?" with a dropdown of remaining categories. The user must select a destination. If any activity in the source category has the same name (case-insensitive) as an activity in the destination category, show a warning and prevent the move until the conflict is resolved (rename one of the activities).
+    - **If category is the last remaining category:** Prevent deletion. Show: "You need at least one category. Create another category first."
+    - **If category has no linked activities:** Delete immediately with confirmation.
   - [+ New Category] button at the bottom
 
 #### Section 2.5 — My Routines
@@ -5588,40 +5609,138 @@ If a permission is denied, the app works without it using fallbacks (fixed praye
 
 #### Onboarding Starter Templates
 
-Pre-configured activity templates offered during onboarding. Each has sensible defaults:
+Pre-configured activity templates offered during onboarding, organized by category. Spiritual section only shown if Islamic personalization is enabled. Each template has pre-configured schedule, fields, and goals.
 
-| Template | Category | Schedule | Fields | Goal |
-|----------|----------|----------|--------|------|
-| 💧 Drink Water | Health & Fitness | Daily | Number (glasses, unit: glasses) | ≥ 8 glasses per day |
-| 🏃 Exercise | Health & Fitness | 3x/week | Duration, Yes/No (Completed) | ≥ 3 times per week |
-| 📖 Read | Learning | Daily | Duration, Number (pages) | ≥ 1 time per day |
-| 😴 Track Sleep | Health & Fitness | Daily | Duration, Star Rating, Mood | ≥ 1 time per day |
-| 📝 Journal | Personal | Daily | Text | ≥ 1 time per day |
-| 🕐 Pray Fajr | Spiritual | Daily, dynamic window Fajr–Sunrise | Start Time, Yes/No (On Time) | ≥ 1 time per day |
-| 🕐 Pray Dhuhr | Spiritual | Daily, dynamic window Dhuhr–Asr | Start Time, Yes/No (On Time) | ≥ 1 time per day |
-| 🕐 Pray Asr | Spiritual | Daily, dynamic window Asr–Maghrib | Start Time, Yes/No (On Time) | ≥ 1 time per day |
-| 🕐 Pray Maghrib | Spiritual | Daily, dynamic window Maghrib–Isha | Start Time, Yes/No (On Time) | ≥ 1 time per day |
-| 🕐 Pray Isha | Spiritual | Daily, dynamic window Isha–Fajr (crosses midnight) | Start Time, Yes/No (On Time) | ≥ 1 time per day |
-| 📖 Read Quran | Spiritual | Daily | Duration, Number (pages) | ≥ 1 time per day |
-| 🤲 Morning Athkar | Spiritual | Daily (Fajr-Sunrise window) | Yes/No (Completed) | ≥ 1 time per day |
-| 🤲 Evening Athkar | Spiritual | Daily (Asr-Maghrib window) | Yes/No (Completed) | ≥ 1 time per day |
-| 📿 Dhikr Counter | Spiritual | No schedule | Number (count) | None |
-| ⚖️ Track Weight | Health & Fitness | Daily | Number (weight, unit: lbs/kg) | None (standing target) |
-| 🧘 Meditate | Health & Fitness | Daily | Duration | ≥ 1 time per day |
-| 💊 Take Medication | Health & Fitness | Daily | Yes/No (Taken), Text (notes) | ≥ 1 time per day |
-| 📚 Study | Learning | Daily | Duration, Text (subject) | ≥ 1 time per day |
-| 💻 Deep Work | Work | Daily | Duration | ≥ 1 time per day |
-| 📋 Plan Tomorrow | Productivity | Daily | Yes/No (Completed) | ≥ 1 time per day |
+**Onboarding presentation:** Categories collapsed by default. "Popular" section always expanded. User taps a category to expand and see its templates. "Select All" option per sub-group (e.g., "Select All Fard Salah"). Templates can be individually checked/unchecked.
 
-Users can modify any of these after onboarding via Settings → My Activities. The templates use the user's locale for units (lbs vs kg based on region).
+**Categories:** Spiritual (🕌 #0D7377), Health & Fitness (🏃 #2D8659), Personal (🌟 #C4841D), Learning (📚 #C8963E), Work (💼 #2D6B8A)
+
+##### Popular (always shown, pre-selected)
+
+| Template | Category | Schedule | Fields | Primary Goal |
+|----------|----------|----------|--------|-------------|
+| 💧 Drink Water | Health & Fitness | Daily, multiple entries | Number (glasses, unit: glasses) | ≥ 8 glasses per day |
+| 📖 Reading | Learning | Daily | Duration, Number (pages) | ≥ 1 time per day |
+| 😴 Sleep | Health & Fitness | Daily | Start Time, End Time, Duration (auto), Star Rating | Duration ≥ 7 hours per day |
+| 📝 Journaling | Personal | Daily | Text | ≥ 1 time per day |
+
+##### Spiritual — Fard Salah (Islamic personalization ON)
+
+Each fard salah has: Primary goal = "did I do it" (≥ 1/day). Secondary goal = "on time" (start time within window).
+
+| Template | Schedule | Time Window |
+|----------|----------|------------|
+| 🕐 Fajr Salah | Daily, Hijri | Fajr → Sunrise |
+| 🕐 Dhuhr Salah | Daily, Hijri | Dhuhr → Asr |
+| 🕐 Asr Salah | Daily, Hijri | Asr → Maghrib |
+| 🕐 Maghrib Salah | Daily, Hijri | Maghrib → Isha |
+| 🕐 Isha Salah | Daily, Hijri | Isha → Fajr (crosses midnight) |
+
+Fields for all Salah: Start Time, Yes/No (On Time).
+
+##### Spiritual — Sunnah & Nafl Salah
+
+| Template | Schedule | Time Window |
+|----------|----------|------------|
+| 🕌 Pre-Fajr Sunnah | Daily, Hijri | Fajr → Sunrise |
+| 🕌 Duha Salah | Daily, Hijri | Sunrise +15 min → Dhuhr |
+| 🕌 Pre-Dhuhr Sunnah | Daily, Hijri | Dhuhr → Asr |
+| 🕌 Post-Dhuhr Sunnah | Daily, Hijri | Dhuhr → Asr |
+| 🕌 Post-Maghrib Sunnah | Daily, Hijri | Maghrib → Isha |
+| 🕌 Post-Isha Sunnah | Daily, Hijri | Isha → Fajr |
+| 🕌 Witr Salah | Daily, Hijri | Isha → Fajr |
+| 🕌 Tahajjud Salah | Daily, Hijri | Isha → Fajr |
+| 🕌 Taraweeh | Yearly, Hijri, Ramadan 1–29/30, daily | Isha → Fajr |
+
+Fields: Yes/No (Completed). Primary goal: ≥ 1/day.
+
+##### Spiritual — Athkar & Quran
+
+| Template | Schedule | Time Window | Fields | Goal |
+|----------|----------|------------|--------|------|
+| 🤲 Morning Athkar | Daily, Hijri | Fajr → Sunrise | Yes/No | ≥ 1/day |
+| 🤲 Evening Athkar | Daily, Hijri | Asr → Maghrib | Yes/No | ≥ 1/day |
+| 🤲 Post-Fajr Athkar | Daily, Hijri | Fajr → Sunrise | Yes/No | ≥ 1/day |
+| 📖 Read Quran | Daily | Duration, Number (pages) | ≥ 1/day |
+| 📖 Memorize Quran (Hifz) | Daily | Duration, Number (pages), Text (surah/ayah) | ≥ 1/day |
+| 📖 Read Surat Al-Kahf | Weekly (Friday) | Duration | ≥ 1/week |
+| 📿 Istighfar / Dhikr | No schedule | Number (count) | None |
+| 🤲 Dua Before Sleep | Daily | Yes/No | ≥ 1/day |
+| 💛 Charity / Sadaqah | No schedule | Number (amount, unit: currency) | None |
+
+##### Spiritual — Fasting
+
+| Template | Schedule | Fields | Goal |
+|----------|----------|--------|------|
+| 🌙 Ramadan Fasting | Yearly, Hijri, Ramadan 1–29/30 | Yes/No (Fasted) | ≥ 1/day |
+| 📅 Monday Fasting | Weekly (Monday) | Yes/No | ≥ 1/week |
+| 📅 Thursday Fasting | Weekly (Thursday) | Yes/No | ≥ 1/week |
+| 📅 White Days Fasting | Monthly, Hijri, days 13-14-15 (one period) | Yes/No, Number (days fasted) | ≥ 3 days per period |
+
+##### Health & Fitness
+
+| Template | Schedule | Fields | Primary Goal |
+|----------|----------|--------|-------------|
+| ⚖️ Weight | Daily | Number (weight, unit: lbs/kg by locale) | None (standing target) |
+| 📊 Body Fat % | Daily | Number (%, unit: %) | None (standing target) |
+| 💊 Medication | Daily | Yes/No (Taken), Text (notes) | ≥ 1/day |
+| 💊 Vitamins / Supplements | Daily | Yes/No (Taken) | ≥ 1/day |
+| 💪 Strength Training | 3x/week | Duration, Text (exercises) | ≥ 3/week |
+| 🏃 Cardio Workout | 3x/week | Duration, Number (distance, unit: km/miles) | ≥ 3/week |
+| 🏊 Swimming | No schedule | Duration, Number (laps) | None |
+| 🧘 Stretching / Yoga | Daily | Duration | ≥ 1/day |
+| 👣 Steps / Walking | Daily | Number (steps, unit: steps) | ≥ 1/day |
+| 🥶 Cold Shower | Daily | Yes/No | ≥ 1/day |
+| ☕ No Caffeine | Daily | Yes/No | ≥ 1/day |
+
+##### Personal
+
+| Template | Schedule | Fields | Primary Goal |
+|----------|----------|--------|-------------|
+| 🪥 Brush Teeth | Daily, multiple entries | Yes/No | ≥ 2/day |
+| 🦷 Floss Teeth | Daily | Yes/No | ≥ 1/day |
+| 🧘 Meditation | Daily | Duration | ≥ 1/day |
+| 🙏 Gratitude | Daily | Text (3 things) | ≥ 1/day |
+| 🍳 Cooking at Home | Daily | Yes/No | ≥ 1/day |
+| 📵 Screen Time Limit | Daily | Duration | None (standing target) |
+| 💰 Budget / Spending | Daily | Number (amount, unit: currency) | None |
+
+##### Learning
+
+| Template | Schedule | Fields | Primary Goal |
+|----------|----------|--------|-------------|
+| 📚 Study | Daily | Duration, Text (subject) | ≥ 1/day |
+| 🌍 Language Learning | Daily | Duration | ≥ 1/day |
+
+##### Work
+
+| Template | Schedule | Fields | Primary Goal |
+|----------|----------|--------|-------------|
+| 📋 Meetings | No schedule | Duration, Text (notes) | None |
+| 💻 Project Work | Daily | Duration | ≥ 1/day |
+| 📁 Admin Tasks | No schedule | Duration | None |
+
+##### Template Library (accessible from Settings → My Activities, not in onboarding)
+
+Additional templates not shown in onboarding but available for users to browse and add:
+
+| Template | Category | Schedule |
+|----------|----------|----------|
+| 6 Days of Shawwal Fasting | Spiritual | Yearly, Hijri, Shawwal 2–7 |
+| Day of Arafat Fasting | Spiritual | Yearly, Hijri, Dhul Hijjah 9 |
+| First 9 Days of Dhul Hijjah Fasting | Spiritual | Yearly, Hijri, Dhul Hijjah 1–9 |
+| Ashura Fasting | Spiritual | Yearly, Hijri, Muharram 9–10 |
+| Sha'ban Fasting | Spiritual | Yearly, Hijri, Sha'ban 1–15 |
+
+Users can modify any template after adding it via Settings → My Activities. The templates use the user's locale for units (lbs vs kg, km vs miles based on region).
 
 #### Routine Suggestion Logic
 
 After Screen 4, the app checks if the selected activities form a natural routine:
 
-**Morning Routine suggestion triggers** when 3+ of these are selected: Pray on Time, Read Quran, Morning Athkar, Meditate, Exercise, Plan Tomorrow.
+**Morning Routine suggestion triggers** when 3+ of these are selected: Fajr Salah, Pre-Fajr Sunnah, Post-Fajr Athkar, Read Quran, Morning Athkar, Meditation, Cardio Workout, Stretching/Yoga.
 
-**Evening Routine suggestion triggers** when 3+ of these are selected: Evening Athkar, Journal, Read, Track Sleep, Plan Tomorrow.
+**Evening Routine suggestion triggers** when 3+ of these are selected: Evening Athkar, Journaling, Reading, Sleep, Dua Before Sleep, Gratitude.
 
 If triggered, Screen 4.5 appears with the suggested routine pre-built from the selected activities. If not triggered, Screen 4.5 is skipped.
 
@@ -5659,6 +5778,10 @@ Accessible from: Profile card "Create Account" button, or any prompt where an ac
 │                                     │
 │ Name                                │
 │ [________________________]          │
+│                                     │
+│ Username                            │
+│ [________________________]          │
+│ (3-20 chars, letters/numbers/_)     │
 │                                     │
 │ Email                               │
 │ [________________________]          │
@@ -6102,7 +6225,7 @@ All user-provided text is validated on both client (Flutter) and server (Supabas
 
 **Token storage:**
 - **Native (iOS/Android):** JWT stored in platform-secure storage (iOS Keychain, Android EncryptedSharedPreferences). Never in plain SharedPreferences or local SQLite.
-- **Web:** JWT stored in memory (Supabase JS client default). Not in localStorage or cookies to prevent XSS token theft.
+- **Web:** JWT stored in localStorage (Supabase JS client default). This enables session persistence across browser refreshes — the user stays signed in automatically.
 
 **Token refresh:** Supabase handles automatic token refresh. If a refresh fails (e.g., token revoked after account deletion), the app detects the auth error and reverts to anonymous mode.
 
