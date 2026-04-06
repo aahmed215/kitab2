@@ -1,6 +1,57 @@
-node_modules/
+# ═══ Environment & Secrets ═══
 .env
 .env*.local
-.next/
-dist/
+*.p8
+*.keystore
+*.jks
+
+# ═══ Flutter / Dart ═══
+.dart_tool/
+.packages
+build/
+*.iml
+.idea/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# ═══ iOS ═══
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Flutter/flutter_export_environment.sh
+
+# ═══ Android ═══
+android/.gradle/
+android/local.properties
+android/key.properties
+**/android/**/GeneratedPluginRegistrant.java
+
+# ═══ Web ═══
+web/.dart_tool/
+
+# ═══ OS ═══
 .DS_Store
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# ═══ Build ═══
+dist/
+.next/
+node_modules/
+
+# ═══ IDE ═══
+.vscode/settings.json
+*.code-workspace
+
+# ═══ Generated ═══
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# ═══ Remember ═══
+.remember/
