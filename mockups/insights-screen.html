@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitab — Insights Screen Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared-styles.css">
+<style>
+.tabs{display:flex;border-bottom:2px solid var(--g100);margin-bottom:12px}
+.tab{flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;color:var(--g400);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.a{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.period-chip{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;background:rgba(13,115,119,.06);border:1px solid rgba(13,115,119,.15);border-radius:16px;font-size:12px;color:var(--primary);font-weight:500;margin-bottom:14px;cursor:pointer}
+.stat-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto}
+.stat-tile{flex:1;min-width:75px;background:var(--surface);border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(26,24,21,.06)}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:var(--tp)}
+.stat-lbl{font-size:9px;color:var(--g400);margin-top:2px;text-transform:uppercase}
+.stat-trend{font-size:10px;margin-top:2px}
+.trend-up{color:var(--success)}
+.trend-down{color:var(--error)}
+.heat-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:8px 0 14px}
+.heat-cell{width:100%;aspect-ratio:1;border-radius:3px;background:var(--g100)}
+.heat-1{background:rgba(13,115,119,.15)}.heat-2{background:rgba(13,115,119,.35)}.heat-3{background:rgba(13,115,119,.55)}.heat-4{background:rgba(13,115,119,.75)}.heat-5{background:var(--primary);box-shadow:0 0 0 1px var(--accent)}
+.cat-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px}
+.cat-fill{flex:1;height:8px;background:var(--g100);border-radius:4px;overflow:hidden}
+.cat-fill-inner{height:100%;border-radius:4px}
+.pattern-card{background:rgba(13,115,119,.04);border:1px solid rgba(13,115,119,.1);border-radius:10px;padding:12px;margin-bottom:8px;font-size:12px;color:var(--ts)}
+.pattern-icon{font-size:16px;margin-right:6px}
+.record-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--g100);font-size:12px}
+.record-icon{font-size:18px}
+.record-lbl{flex:1;color:var(--ts)}
+.record-val{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="page-header">
+  <div class="page-title">Insights Screen</div>
+  <div class="page-subtitle">Dashboard tab with ready-made insights | <a href="../docs/spec.html#screen-insights">Back to Spec</a></div>
+</div>
+
+<div class="row">
+<div class="phone-frame"><div class="ds phone">
+<div class="dyn-isl"></div>
+<div class="stat-bar"><span>8:00 AM</span><span style="font-size:11px">📶 🔋</span></div>
+<div class="app-bar"><h1>Insights</h1></div>
+
+<!-- Tabs -->
+<div style="padding:0 16px">
+<div class="tabs"><div class="tab a">Dashboard</div><div class="tab">My Charts</div></div>
+<div class="period-chip">This Month ▾ &nbsp; Apr 1 – Apr 30</div>
+</div>
+
+<div class="ct">
+<!-- Stat tiles -->
+<div class="stat-row">
+  <div class="stat-tile"><div class="stat-val">85%</div><div class="stat-lbl">Goals Met</div><div class="stat-trend trend-up">↑ 5%</div></div>
+  <div class="stat-tile"><div class="stat-val">🔥12</div><div class="stat-lbl">Best Streak</div></div>
+  <div class="stat-tile"><div class="stat-val">47</div><div class="stat-lbl">Entries</div><div class="stat-trend trend-up">↑ 8</div></div>
+  <div class="stat-tile"><div class="stat-val">14h</div><div class="stat-lbl">Tracked</div><div class="stat-trend trend-down">↓ 2h</div></div>
+</div>
+
+<!-- Heat map -->
+<div class="sh"><h2>Completion</h2></div>
+<div style="display:flex;gap:3px;margin-bottom:4px;padding-left:2px">
+  <div style="flex:1;text-align:center;font-size:8px;color:var(--g400)">M</div>
+  <div style="flex:1;text-align:center;font-size:8px;color:var(--g400)">T</div>
+  <div style="flex:1;text-align:center;font-size:8px;color:var(--g400)">W</div>
+  <div style="flex:1;text-align:center;font-size:8px;color:var(--g400)">T</div>
+  <div style="flex:1;text-align:center;font-size:8px;color:var(--g400)">F</div>
+  <div style="flex:1;text-align:center;font-size:8px;color:var(--g400)">S</div>
+  <div style="flex:1;text-align:center;font-size:8px;color:var(--g400)">S</div>
+</div>
+<div class="heat-grid">
+  <div class="heat-cell"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-4"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-3"></div><div class="heat-cell heat-2"></div><div class="heat-cell heat-1"></div>
+  <div class="heat-cell heat-5"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-4"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-3"></div><div class="heat-cell heat-4"></div>
+  <div class="heat-cell heat-5"></div><div class="heat-cell heat-4"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-5"></div>
+  <div class="heat-cell heat-4"></div><div class="heat-cell heat-3"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-4"></div><div class="heat-cell heat-5"></div><div class="heat-cell heat-2"></div><div class="heat-cell heat-3"></div>
+  <div class="heat-cell heat-5"></div><div class="heat-cell heat-4"></div><div class="heat-cell"></div><div class="heat-cell"></div><div class="heat-cell"></div><div class="heat-cell"></div><div class="heat-cell"></div>
+</div>
+
+<!-- Category breakdown -->
+<div class="sh"><h2>By Category</h2></div>
+<div class="cat-bar"><span>🕌</span><span style="min-width:60px">Spiritual</span><div class="cat-fill"><div class="cat-fill-inner" style="width:92%;background:var(--primary)"></div></div><span style="font-family:'JetBrains Mono',monospace;color:var(--tp);font-weight:600">92%</span></div>
+<div class="cat-bar"><span>🏃</span><span style="min-width:60px">Health</span><div class="cat-fill"><div class="cat-fill-inner" style="width:75%;background:var(--success)"></div></div><span style="font-family:'JetBrains Mono',monospace;color:var(--tp);font-weight:600">75%</span></div>
+<div class="cat-bar"><span>📚</span><span style="min-width:60px">Learning</span><div class="cat-fill"><div class="cat-fill-inner" style="width:48%;background:var(--accent)"></div></div><span style="font-family:'JetBrains Mono',monospace;color:var(--tp);font-weight:600">48%</span></div>
+<div class="cat-bar" style="margin-bottom:14px"><span>💼</span><span style="min-width:60px">Work</span><div class="cat-fill"><div class="cat-fill-inner" style="width:88%;background:var(--info)"></div></div><span style="font-family:'JetBrains Mono',monospace;color:var(--tp);font-weight:600">88%</span></div>
+
+<!-- Patterns -->
+<div class="sh"><h2>Patterns</h2></div>
+<div class="pattern-card"><span class="pattern-icon">💡</span>You complete 92% of goals on weekdays but only 68% on weekends<br><span style="font-size:10px;color:var(--g400)">Based on 120 data points</span></div>
+<div class="pattern-card"><span class="pattern-icon">💡</span>Your mood averages 😊 Good on days you exercise vs 😐 Neutral on days you don't<br><span style="font-size:10px;color:var(--g400)">Based on 45 data points</span></div>
+
+<!-- Personal Records -->
+<div class="sh"><h2>Personal Records</h2></div>
+<div class="record-row"><span class="record-icon">🏆</span><span class="record-lbl">Longest all-goals streak</span><span class="record-val">21 days</span></div>
+<div class="record-row"><span class="record-icon">🏆</span><span class="record-lbl">Most entries in one day</span><span class="record-val">12</span></div>
+<div class="record-row"><span class="record-icon">🏆</span><span class="record-lbl">Longest Morning Run</span><span class="record-val">12.4 km</span></div>
+<div class="record-row" style="border:none"><span class="record-icon">🏆</span><span class="record-lbl">Most consistent activity</span><span class="record-val">Pray Fajr 95%</span></div>
+</div>
+
+<button class="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+
+<div class="bnav">
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 11.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5L12 3l8 8.5z"/></svg><span class="nl">Home</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span class="nl">Book</span></button>
+  <button class="ni a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 18V12h4v6M10 18V8h4v10M16 18V4h4v14M2 20h20"/></svg><span class="nl">Insights</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="4"/><path d="M17 19v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/></svg><span class="nl">Social</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg><span class="nl">Profile</span></button>
+</div>
+</div></div>
+</div>
+</body>
+</html>

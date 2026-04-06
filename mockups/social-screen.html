@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitab — Social Screen Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared-styles.css">
+<style>
+.tabs{display:flex;border-bottom:2px solid var(--g100);margin-bottom:12px}.tab{flex:1;text-align:center;padding:10px;font-size:13px;font-weight:500;color:var(--g400);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}.tab.a{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.friend-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--g100)}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px;color:#fff;flex-shrink:0}
+.friend-info{flex:1}.friend-name{font-size:14px;font-weight:500;color:var(--tp)}.friend-sub{font-size:11px;color:var(--g400)}
+.req-actions{display:flex;gap:8px}
+.req-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none}
+.req-accept{background:var(--primary);color:#fff}
+.req-decline{background:var(--g100);color:var(--ts)}
+.comp-card{background:var(--surface);border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(26,24,21,.08);margin-bottom:8px}
+.comp-name{font-size:14px;font-weight:600;color:var(--tp)}.comp-sub{font-size:11px;color:var(--g400);margin-top:2px}
+.comp-pos{font-size:12px;color:var(--primary);font-weight:500;margin-top:4px}
+.sec-label{font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px}
+</style>
+</head>
+<body>
+<div class="page-header">
+  <div class="page-title">Social Screen</div>
+  <div class="page-subtitle">Friends tab shown | <a href="../docs/spec.html#screen-social">Back to Spec</a></div>
+</div>
+
+<div class="row">
+<div class="phone-frame"><div class="ds phone">
+<div class="dyn-isl"></div>
+<div class="stat-bar"><span>8:00 AM</span><span style="font-size:11px">📶 🔋</span></div>
+<div class="app-bar"><h1>Social</h1><button class="ib" style="font-size:18px">👤+</button></div>
+
+<div style="padding:0 16px">
+<div class="tabs"><div class="tab a">Friends</div><div class="tab">Shared</div><div class="tab">Competitions</div></div>
+</div>
+
+<div class="ct">
+<!-- Pending requests -->
+<div class="sec-label">Pending Requests (2)</div>
+<div class="friend-row">
+  <div class="avatar" style="background:var(--primary)">A</div>
+  <div class="friend-info"><div class="friend-name">Ali Hassan</div><div class="friend-sub">ali@email.com</div></div>
+  <div class="req-actions"><button class="req-btn req-accept">Accept</button><button class="req-btn req-decline">Decline</button></div>
+</div>
+<div class="friend-row">
+  <div class="avatar" style="background:var(--accent)">S</div>
+  <div class="friend-info"><div class="friend-name">Sara Ahmed</div><div class="friend-sub">sara@email.com</div></div>
+  <div class="req-actions"><button class="req-btn req-accept">Accept</button><button class="req-btn req-decline">Decline</button></div>
+</div>
+
+<!-- Friends -->
+<div class="sec-label">Friends (5)</div>
+<div class="friend-row">
+  <div class="avatar" style="background:#2D6B8A">O</div>
+  <div class="friend-info"><div class="friend-name">Omar Khalid</div><div class="friend-sub">3 shared activities</div></div>
+  <span style="color:var(--g300)">›</span>
+</div>
+<div class="friend-row">
+  <div class="avatar" style="background:#8B5CF6">F</div>
+  <div class="friend-info"><div class="friend-name">Fatima Ali</div><div class="friend-sub">5 shared activities</div></div>
+  <span style="color:var(--g300)">›</span>
+</div>
+<div class="friend-row">
+  <div class="avatar" style="background:var(--success)">Y</div>
+  <div class="friend-info"><div class="friend-name">Yusuf Ibrahim</div><div class="friend-sub">1 shared activity</div></div>
+  <span style="color:var(--g300)">›</span>
+</div>
+<div class="friend-row">
+  <div class="avatar" style="background:var(--warning)">M</div>
+  <div class="friend-info"><div class="friend-name">Mariam Khan</div><div class="friend-sub">No shared activities</div></div>
+  <span style="color:var(--g300)">›</span>
+</div>
+<div class="friend-row" style="border:none">
+  <div class="avatar" style="background:var(--error)">L</div>
+  <div class="friend-info"><div class="friend-name">Layla Nasser</div><div class="friend-sub">2 shared activities</div></div>
+  <span style="color:var(--g300)">›</span>
+</div>
+</div>
+
+<button class="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+
+<div class="bnav">
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 11.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5L12 3l8 8.5z"/></svg><span class="nl">Home</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span class="nl">Book</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18V12h4v6M10 18V8h4v10M16 18V4h4v14"/></svg><span class="nl">Insights</span></button>
+  <button class="ni a"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="9" r="4"/><path d="M17 19v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/></svg><span class="nl">Social</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg><span class="nl">Profile</span></button>
+</div>
+</div></div>
+</div>
+</body>
+</html>

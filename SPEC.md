@@ -1772,7 +1772,7 @@ The 4 options:
 
 **Web desktop:** Single click shows all 4 options (no long press available with a mouse).
 
-**Native (phone/tablet):** Single tap shows all 4 options. Long press auto-starts a timer immediately (see §7.3) — the fastest path to begin tracking.
+**Native (phone/tablet):** Single tap shows all 4 options. Long press skips Layer 1 (Record Activity / Start Condition) and goes directly to the 3 recording sub-options: Timer, Habit, Metric — saving one tap for frequent loggers.
 
 **Timer limit:** If 3 timers are already running and the user taps "Start a Timer," the option is grayed out. Tapping it shows a toast: "Maximum 3 timers at a time. Stop a timer to start a new one."
 

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitab — Profile Screen Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared-styles.css">
+<style>
+.profile-card{background:var(--surface);border-radius:12px;padding:24px;text-align:center;box-shadow:0 1px 3px rgba(26,24,21,.08);margin-bottom:16px;position:relative;overflow:hidden}
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:var(--primary);color:#fff;font-size:28px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.profile-name{font-family:'DM Serif Display',serif;font-size:20px;color:var(--tp)}
+.profile-email{font-size:12px;color:var(--g400);margin-top:2px}
+.profile-since{font-size:11px;color:var(--g300);margin-top:4px}
+.edit-btn{margin-top:12px;padding:8px 20px;border-radius:10px;border:1.5px solid var(--g200);background:transparent;font-size:12px;font-weight:600;color:var(--ts);cursor:pointer}
+.settings-group{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border-radius:12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(26,24,21,.04);cursor:pointer}
+.sg-icon{font-size:20px;flex-shrink:0}
+.sg-info{flex:1}
+.sg-name{font-size:14px;font-weight:500;color:var(--tp)}
+.sg-sub{font-size:11px;color:var(--g400)}
+.sg-chev{color:var(--g300);font-size:16px}
+</style>
+</head>
+<body>
+<div class="page-header">
+  <div class="page-title">Profile & Settings</div>
+  <div class="page-subtitle">Signed-in user view | <a href="../docs/spec.html#screen-profile">Back to Spec</a></div>
+</div>
+
+<div class="row">
+<div class="phone-frame"><div class="ds phone">
+<div class="dyn-isl"></div>
+<div class="stat-bar"><span>8:00 AM</span><span style="font-size:11px">📶 🔋</span></div>
+<div class="app-bar"><h1>Profile</h1></div>
+
+<div class="ct">
+<!-- Profile card -->
+<div class="profile-card">
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;opacity:.04;background-image:url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 stroke=%22%230D7377%22 stroke-width=%220.8%22%3E%3Cpolygon points=%2230,5 50,17.5 50,42.5 30,55 10,42.5 10,17.5%22/%3E%3C/g%3E%3C/svg%3E');background-size:60px"></div>
+  <div style="position:relative">
+    <div class="profile-avatar">A</div>
+    <div class="profile-name">Ahmed Al-Ahmed</div>
+    <div class="profile-email">ahmed@email.com</div>
+    <div class="profile-since">Kitab user since Apr 2026</div>
+    <button class="edit-btn">Edit Profile</button>
+  </div>
+</div>
+
+<!-- Settings groups -->
+<div class="settings-group"><span class="sg-icon">📋</span><div class="sg-info"><div class="sg-name">My Activities</div><div class="sg-sub">12 activities · 4 categories</div></div><span class="sg-chev">›</span></div>
+<div class="settings-group"><span class="sg-icon">🔄</span><div class="sg-info"><div class="sg-name">My Routines</div><div class="sg-sub">3 routines</div></div><span class="sg-chev">›</span></div>
+<div class="settings-group"><span class="sg-icon">📅</span><div class="sg-info"><div class="sg-name">Calendar & Date</div><div class="sg-sub">Hijri, ISNA, Shafi</div></div><span class="sg-chev">›</span></div>
+<div class="settings-group"><span class="sg-icon">🎨</span><div class="sg-info"><div class="sg-name">Appearance</div><div class="sg-sub">Light mode</div></div><span class="sg-chev">›</span></div>
+<div class="settings-group"><span class="sg-icon">🔔</span><div class="sg-info"><div class="sg-name">Notifications</div><div class="sg-sub">Reminders at 9 PM</div></div><span class="sg-chev">›</span></div>
+<div class="settings-group"><span class="sg-icon">🔒</span><div class="sg-info"><div class="sg-name">Privacy & Sharing</div><div class="sg-sub">Default: Private</div></div><span class="sg-chev">›</span></div>
+<div class="settings-group"><span class="sg-icon">🏷️</span><div class="sg-info"><div class="sg-name">Condition Presets</div><div class="sg-sub">6 system + 2 custom</div></div><span class="sg-chev">›</span></div>
+<div class="settings-group"><span class="sg-icon">💾</span><div class="sg-info"><div class="sg-name">Data & Storage</div><div class="sg-sub">Export, import, cache</div></div><span class="sg-chev">›</span></div>
+<div class="settings-group"><span class="sg-icon">👤</span><div class="sg-info"><div class="sg-name">Account</div><div class="sg-sub">ahmed@email.com</div></div><span class="sg-chev">›</span></div>
+<div class="settings-group"><span class="sg-icon">ℹ️</span><div class="sg-info"><div class="sg-name">About</div><div class="sg-sub">Kitab v1.0.0</div></div><span class="sg-chev">›</span></div>
+</div>
+
+<button class="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+
+<div class="bnav">
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 11.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5L12 3l8 8.5z"/></svg><span class="nl">Home</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span class="nl">Book</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18V12h4v6M10 18V8h4v10M16 18V4h4v14"/></svg><span class="nl">Insights</span></button>
+  <button class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="4"/><path d="M17 19v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/></svg><span class="nl">Social</span></button>
+  <button class="ni a"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg><span class="nl">Profile</span></button>
+</div>
+</div></div>
+</div>
+</body>
+</html>

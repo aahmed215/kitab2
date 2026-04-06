@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitab — V1 Product Specification</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   KITAB V1 SPECIFICATION — DESIGN SYSTEM
+   ═══════════════════════════════════════════════ */
+:root {
+  --primary: #0D7377;
+  --primary-light: #14A3A8;
+  --primary-dark: #095456;
+  --accent: #C8963E;
+  --accent-light: #E8B960;
+  --bg: #FAFAF8;
+  --surface: #FFFFFF;
+  --tp: #1A1815;
+  --ts: #5C5850;
+  --g50: #F5F4F2;
+  --g100: #E8E6E3;
+  --g200: #D4D1CC;
+  --g300: #B8B4AE;
+  --g400: #9C9790;
+  --g500: #7A756E;
+  --g600: #5C5850;
+  --g700: #3E3B35;
+  --g800: #2A2722;
+  --g900: #1A1815;
+  --success: #2D8659;
+  --warning: #C4841D;
+  --error: #C43D3D;
+  --info: #2D6B8A;
+  --sidebar-w: 280px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--tp);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+/* ═══ PROGRESS BAR ═══ */
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  z-index: 1000; transition: width 0.1s;
+}
+
+/* ═══ SIDEBAR NAV ═══ */
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-w); background: var(--surface);
+  border-right: 1px solid var(--g100);
+  overflow-y: auto; z-index: 100;
+  padding: 24px 0;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--g200); border-radius: 2px; }
+
+.sidebar-brand {
+  padding: 0 24px 20px;
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px; color: var(--primary);
+  border-bottom: 1px solid var(--g100);
+  margin-bottom: 16px;
+}
+.sidebar-brand small {
+  display: block; font-family: 'Inter', sans-serif;
+  font-size: 11px; color: var(--g400);
+  font-weight: 500; letter-spacing: 0.5px;
+  text-transform: uppercase; margin-top: 4px;
+}
+
+.nav-section {
+  padding: 8px 24px 4px;
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--g400); margin-top: 8px;
+}
+
+.nav-link {
+  display: block; padding: 6px 24px; font-size: 13px;
+  color: var(--ts); text-decoration: none;
+  transition: all 0.15s; border-left: 3px solid transparent;
+}
+.nav-link:hover { background: var(--g50); color: var(--tp); }
+.nav-link.active { color: var(--primary); border-left-color: var(--primary); background: rgba(13,115,119,0.04); font-weight: 600; }
+.nav-link.sub { padding-left: 40px; font-size: 12px; color: var(--g500); }
+.nav-link.sub:hover { color: var(--tp); }
+
+/* ═══ MAIN CONTENT ═══ */
+.main {
+  margin-left: var(--sidebar-w);
+  padding: 48px 64px 120px;
+  max-width: calc(var(--sidebar-w) + 960px);
+}
+
+/* ═══ TYPOGRAPHY ═══ */
+h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 36px; font-weight: 400;
+  color: var(--tp); margin-bottom: 8px;
+  padding-bottom: 16px; border-bottom: 2px solid var(--g100);
+}
+h1 .version {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; font-weight: 600;
+  background: var(--primary); color: white;
+  padding: 3px 10px; border-radius: 12px;
+  vertical-align: middle; margin-left: 12px;
+}
+h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px; font-weight: 400;
+  color: var(--tp); margin: 48px 0 16px;
+  padding-top: 32px; border-top: 1px solid var(--g100);
+}
+h2:first-of-type { border-top: none; padding-top: 0; margin-top: 32px; }
+h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 21px; font-weight: 400;
+  color: var(--tp); margin: 32px 0 12px;
+}
+h4 {
+  font-size: 15px; font-weight: 600;
+  color: var(--tp); margin: 24px 0 8px;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+p { margin-bottom: 16px; color: var(--ts); }
+strong { color: var(--tp); font-weight: 600; }
+
+/* ═══ INTRO/HERO ═══ */
+.hero {
+  background: linear-gradient(135deg, rgba(13,115,119,0.06), rgba(200,150,62,0.04));
+  border-radius: 16px; padding: 32px;
+  margin-bottom: 32px; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  opacity: 0.04; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%230D7377' stroke-width='0.8'%3E%3Cpolygon points='30,5 50,17.5 50,42.5 30,55 10,42.5 10,17.5'/%3E%3Cpolygon points='30,15 40,21.5 40,38.5 30,45 20,38.5 20,21.5'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 60px 60px;
+}
+.hero-content { position: relative; z-index: 1; }
+.hero h1 { border-bottom: none; padding-bottom: 0; }
+.hero p { font-size: 17px; color: var(--ts); max-width: 640px; }
+.hero-meta {
+  display: flex; gap: 24px; margin-top: 16px;
+  font-size: 12px; color: var(--g400);
+}
+.hero-meta span { display: flex; align-items: center; gap: 6px; }
+
+/* ═══ TABLES ═══ */
+table {
+  width: 100%; border-collapse: collapse;
+  margin: 16px 0 24px; font-size: 13px;
+}
+th {
+  text-align: left; padding: 10px 14px;
+  background: var(--g50); border-bottom: 2px solid var(--g100);
+  font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--g500);
+}
+td {
+  padding: 10px 14px; border-bottom: 1px solid var(--g100);
+  color: var(--ts); vertical-align: top;
+}
+tr:hover td { background: rgba(13,115,119,0.02); }
+
+/* ═══ CODE BLOCKS ═══ */
+pre {
+  background: var(--g900); color: #E8E6E3;
+  padding: 20px 24px; border-radius: 12px;
+  overflow-x: auto; margin: 16px 0 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; line-height: 1.6;
+}
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--g50); padding: 2px 6px;
+  border-radius: 4px; font-size: 13px; color: var(--primary);
+}
+pre code { background: none; padding: 0; color: inherit; }
+
+/* ═══ COLOR SWATCHES ═══ */
+.color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+.color-swatch {
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--g100);
+}
+.color-swatch .swatch-color { height: 48px; }
+.color-swatch .swatch-info { padding: 8px 10px; }
+.color-swatch .swatch-name { font-size: 12px; font-weight: 600; color: var(--tp); }
+.color-swatch .swatch-hex { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--g400); }
+
+/* ═══ DESIGN TOKENS ═══ */
+.token-table td:first-child {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--primary);
+  white-space: nowrap;
+}
+
+/* ═══ PHONE MOCKUP ═══ */
+.phone-frame {
+  background: #111; border-radius: 44px;
+  padding: 10px; display: inline-block;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.2);
+}
+.phone-screen {
+  width: 320px; border-radius: 36px;
+  overflow: hidden; background: var(--bg);
+}
+.mockup-row {
+  display: flex; gap: 32px; justify-content: center;
+  flex-wrap: wrap; margin: 24px 0;
+}
+.mockup-label {
+  text-align: center; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--g400); margin-bottom: 12px;
+}
+
+/* ═══ DIAGRAMS ═══ */
+.diagram {
+  background: var(--surface); border: 1px solid var(--g100);
+  border-radius: 12px; padding: 24px; margin: 16px 0 24px;
+  overflow-x: auto;
+}
+.diagram pre {
+  background: transparent; color: var(--tp);
+  padding: 0; margin: 0; font-size: 12px;
+}
+
+/* ═══ CALLOUTS ═══ */
+.callout {
+  padding: 16px 20px; border-radius: 10px;
+  margin: 16px 0 24px; font-size: 14px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.callout-info { background: rgba(45,107,138,0.08); border-left: 3px solid var(--info); }
+.callout-warning { background: rgba(196,132,29,0.08); border-left: 3px solid var(--warning); }
+.callout-success { background: rgba(45,134,89,0.08); border-left: 3px solid var(--success); }
+.callout-error { background: rgba(196,61,61,0.08); border-left: 3px solid var(--error); }
+
+/* ═══ BADGES ═══ */
+.badge {
+  display: inline-flex; padding: 3px 10px;
+  border-radius: 12px; font-size: 11px; font-weight: 600;
+}
+.badge-primary { background: rgba(13,115,119,0.1); color: var(--primary); }
+.badge-accent { background: rgba(200,150,62,0.1); color: var(--accent); }
+.badge-v2 { background: rgba(156,151,144,0.15); color: var(--g500); }
+
+/* ═══ COLLAPSIBLE ═══ */
+details {
+  border: 1px solid var(--g100); border-radius: 10px;
+  margin: 12px 0; overflow: hidden;
+}
+summary {
+  padding: 14px 20px; cursor: pointer;
+  font-weight: 600; font-size: 14px;
+  background: var(--g50); color: var(--tp);
+  list-style: none; display: flex;
+  align-items: center; gap: 8px;
+}
+summary::before { content: '▸'; transition: transform 0.2s; }
+details[open] summary::before { transform: rotate(90deg); }
+details > div { padding: 16px 20px; }
+
+/* ═══ FLOW DIAGRAMS ═══ */
+.flow {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap; margin: 16px 0 24px;
+}
+.flow-step {
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 12px; font-weight: 500;
+  background: rgba(13,115,119,0.08); color: var(--primary);
+  white-space: nowrap;
+}
+.flow-arrow { color: var(--g300); font-size: 16px; }
+
+/* ═══ SCREEN CARDS ═══ */
+.screen-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px; margin: 16px 0 24px;
+}
+.screen-card {
+  border: 1px solid var(--g100); border-radius: 12px;
+  padding: 16px; text-align: center; transition: all 0.2s;
+}
+.screen-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(13,115,119,0.08); }
+.screen-card-icon { font-size: 32px; margin-bottom: 8px; }
+.screen-card-name { font-size: 14px; font-weight: 600; color: var(--tp); }
+.screen-card-desc { font-size: 12px; color: var(--g400); margin-top: 4px; }
+
+/* ═══ BACK TO TOP ═══ */
+.back-to-top {
+  position: fixed; bottom: 32px; right: 32px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--primary); color: white;
+  border: none; cursor: pointer; font-size: 20px;
+  display: none; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(13,115,119,0.3);
+  z-index: 100; transition: opacity 0.2s;
+}
+.back-to-top.visible { display: flex; }
+
+/* ═══ SPEC SECTION ═══ */
+.spec-section { scroll-margin-top: 24px; }
+
+/* ═══ INLINE MOCKUP COMPONENTS ═══ */
+.mock-card {
+  background: var(--surface); border-radius: 12px;
+  padding: 16px; box-shadow: 0 1px 3px rgba(26,24,21,0.08);
+  margin: 8px 0;
+}
+.mock-status { width: 24px; height: 24px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.mock-done { background: var(--success); color: white; }
+.mock-prog { background: var(--g200); color: var(--g500); }
+.mock-pend { background: var(--warning); color: white; }
+.mock-exc { background: var(--info); color: white; }
+.mock-miss { background: var(--error); color: white; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 1024px) {
+  .sidebar { width: 240px; }
+  .main { margin-left: 240px; padding: 32px 40px 120px; }
+  :root { --sidebar-w: 240px; }
+}
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 24px 20px 120px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar" style="width: 0%"></div>
+
+<!-- ═══════════════════════════════════════════════
+     SIDEBAR NAVIGATION
+     ═══════════════════════════════════════════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    Kitab
+    <small>V1 Product Specification</small>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <a class="nav-link" href="#vision">Vision & Principles</a>
+  <a class="nav-link" href="#features">Features & Architecture</a>
+
+  <div class="nav-section">Design</div>
+  <a class="nav-link" href="#design-system">Design System</a>
+  <a class="nav-link sub" href="#colors">Colors</a>
+  <a class="nav-link sub" href="#typography">Typography</a>
+  <a class="nav-link sub" href="#spacing">Spacing & Radii</a>
+  <a class="nav-link sub" href="#patterns">Islamic Patterns</a>
+  <a class="nav-link sub" href="#animation">Animation & Motion</a>
+  <a class="nav-link" href="#components">Component Library</a>
+
+  <div class="nav-section">Screens</div>
+  <a class="nav-link" href="#screen-home">Home</a>
+  <a class="nav-link" href="#screen-book">Book</a>
+  <a class="nav-link" href="#screen-insights">Insights</a>
+  <a class="nav-link" href="#screen-social">Social</a>
+  <a class="nav-link" href="#screen-profile">Profile & Settings</a>
+  <a class="nav-link" href="#screen-notifications">Notifications</a>
+  <a class="nav-link" href="#screen-onboarding">Onboarding</a>
+
+  <div class="nav-section">Core Systems</div>
+  <a class="nav-link" href="#templates">Activity Templates</a>
+  <a class="nav-link" href="#routines">Routines</a>
+  <a class="nav-link" href="#fab">FAB & Entry Points</a>
+  <a class="nav-link" href="#entry-form">Entry Form</a>
+
+  <div class="nav-section">Engines</div>
+  <a class="nav-link" href="#period-engine">Period Engine</a>
+  <a class="nav-link" href="#goal-engine">Goal Engine</a>
+  <a class="nav-link" href="#linkage-engine">Linkage Engine</a>
+  <a class="nav-link" href="#sync-engine">Sync Engine</a>
+  <a class="nav-link" href="#streak-engine">Streaks & Lifecycle</a>
+
+  <div class="nav-section">Data & Auth</div>
+  <a class="nav-link" href="#database">Database Schema</a>
+  <a class="nav-link" href="#auth">Authentication</a>
+  <a class="nav-link" href="#sync-conflicts">Sync Conflicts</a>
+
+  <div class="nav-section">Technical</div>
+  <a class="nav-link" href="#flutter-arch">Flutter Architecture</a>
+  <a class="nav-link" href="#security">Security & Privacy</a>
+  <a class="nav-link" href="#apis">APIs & Services</a>
+  <a class="nav-link" href="#implementation">Implementation Details</a>
+
+  <div class="nav-section">Compliance</div>
+  <a class="nav-link" href="#legal">Legal & Compliance</a>
+  <a class="nav-link" href="#analytics">Analytics & Monitoring</a>
+
+  <div class="nav-section">Roadmap</div>
+  <a class="nav-link" href="#v2">V2 Roadmap</a>
+  <a class="nav-link" href="#dependencies">Dependencies</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     MAIN CONTENT
+     ═══════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- ═══ HERO ═══ -->
+  <div class="hero">
+    <div class="hero-content">
+      <h1>Kitab <span class="version">V1</span></h1>
+      <p>Track your journey. Grow every day. — A comprehensive habit and activity tracker that helps users build and maintain good habits, grow as individuals and as a community, and discover powerful insights from their data.</p>
+      <div class="hero-meta">
+        <span>📋 19 Specification Sections</span>
+        <span>📱 7 Screens</span>
+        <span>🗄️ 20+ Database Tables</span>
+        <span>⚡ 4 Core Engines</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION: VISION & PRINCIPLES
+       ═══════════════════════════════════════════════ -->
+  <section id="vision" class="spec-section">
+    <h2>1. Vision & Principles</h2>
+
+    <h3>Product Vision</h3>
+
+    <p><strong>One-liner:</strong> Kitab is a comprehensive habit and activity tracker that helps users build and maintain good habits, grow as individuals and as a community, and discover powerful insights from their data.</p>
+
+    <p><strong>Core metaphor:</strong> Your life is a book being written in real-time. Every habit you build, every action you take, every streak you maintain is a page in your Kitab. The app makes that book visible, measurable, and beautiful.</p>
+
+    <p><strong>Marketing tagline:</strong> "Track your journey. Grow every day." — The Islamic inspiration lives in the design system and optional features (Hijri calendar, prayer times, Islamic greetings), not in public-facing taglines. The app is inclusive to all users.</p>
+
+    <p><strong>Cultural foundation:</strong> The word "Kitab" comes from the Arabic word for "book." The app draws inspiration from the Islamic concept of the book of deeds — a record of one's actions presented on the Day of Judgement. Kitab acts as a digital, living version of that concept. While rooted in Islamic philosophy, the app is inclusive and equally valuable to all users regardless of background.</p>
+
+    <h3>Design Principles (Ranked)</h3>
+    <p>When two principles conflict, the higher-ranked one wins.</p>
+
+    <table>
+      <thead>
+        <tr><th>Rank</th><th>Principle</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td><strong>Clarity over cleverness</strong></td><td>Every screen should be immediately understandable. No mystery icons, no hidden gestures, no jargon. A first-time user and a power user should both feel at home.</td></tr>
+        <tr><td><strong>2</strong></td><td><strong>Progressive depth</strong></td><td>Simple on the surface, powerful underneath. A beginner sees a clean tracker. A power user discovers custom categories, detailed analytics, and automation. The complexity is there but never forced.</td></tr>
+        <tr><td><strong>3</strong></td><td><strong>Reflection, not judgment</strong></td><td>The app feels like a wise companion, not a disappointed parent. Missed a habit? Here's your pattern. Not a guilt trip. The tone is encouraging, insightful, and never punishing.</td></tr>
+        <tr><td><strong>4</strong></td><td><strong>Beauty with purpose</strong></td><td>Every visual element earns its place. Islamic geometric patterns represent the interconnectedness of habits and growth. Gold accents mark achievement and progress. Nothing is purely ornamental.</td></tr>
+        <tr><td><strong>5</strong></td><td><strong>Accessible by default</strong></td><td>Not an afterthought. Every color, every interaction, every piece of text is designed to work for everyone — screen readers, color blindness, motor impairments, large text. If it doesn't work for everyone, it doesn't ship.</td></tr>
+        <tr><td><strong>6</strong></td><td><strong>Offline is real</strong></td><td>On native devices, the app works fully without internet. Sync is seamless and invisible. Users should never think about connectivity.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Platform Targets</h3>
+    <table>
+      <thead>
+        <tr><th>Platform</th><th>Framework</th><th>Data</th><th>Account Required</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>iOS (iPhone, iPad)</td><td>Flutter</td><td>Local-first + cloud sync</td><td>No</td></tr>
+        <tr><td>Android</td><td>Flutter</td><td>Local-first + cloud sync</td><td>No</td></tr>
+        <tr><td>Web (Desktop browser)</td><td>Flutter Web</td><td>Cloud-only</td><td>Yes</td></tr>
+        <tr><td>Web (Mobile browser)</td><td>Flutter Web</td><td>Cloud-only</td><td>Yes</td></tr>
+        <tr><td>Apple Watch</td><td>Native SwiftUI</td><td>Via iPhone</td><td>V2</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">💡</span>
+      <div>The app prioritizes <strong>consistent design across platforms</strong> over native feel. Flutter renders its own widgets, so the app looks and behaves the same on iOS, Android, and web. Native features like haptic feedback are still used where available.</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 2: FEATURES & ARCHITECTURE
+       ═══════════════════════════════════════════════ -->
+  <section id="features" class="spec-section">
+    <h2>2. Features & Information Architecture</h2>
+
+    <h3>Core Concept: Activities</h3>
+    <p>Activities are the fundamental unit of Kitab. Everything the user tracks is an activity. An activity has a <strong>template</strong> (configuration) and <strong>entries</strong> (logged instances).</p>
+
+    <div class="diagram">
+<pre>
+Activity Template (configuration)
+├── Identity: name, category (icon + color), description
+├── Fields: what data to capture per entry (13 types)
+├── Schedule (optional): when the activity is expected
+│   ├── Calendar type (Gregorian / Hijri)
+│   ├── Frequency (daily, weekly, monthly, custom)
+│   └── Time window (specific or dynamic prayer times)
+└── Goals (optional): targets to achieve
+    ├── Quick Setup ("do this 3x per week")
+    └── Custom Goal (X comparison Y + consistency layer)
+
+Activity Entry (logged instance)
+├── Linked to template (Layer 1) — or ad-hoc
+├── Linked to period (Layer 2) — or orphaned
+├── Field values (captured data)
+├── Notes (freeform text)
+├── Timer segments (if timed)
+└── Source (manual or V2 health device)
+</pre>
+    </div>
+
+    <p>A <strong>"habit"</strong> is not a separate concept — it is an activity with a frequency schedule and a boolean goal (did I do it or not). The word "habit" may appear in the UI but the underlying model is always an activity.</p>
+
+    <h3>Screen Map</h3>
+    <p>The app has 5 main tabs plus sub-screens:</p>
+
+    <div class="screen-grid">
+      <div class="screen-card">
+        <div class="screen-card-icon">🏠</div>
+        <div class="screen-card-name">Home</div>
+        <div class="screen-card-desc">Today's activities, streaks, conditions, progress</div>
+      </div>
+      <div class="screen-card">
+        <div class="screen-card-icon">📖</div>
+        <div class="screen-card-name">Book</div>
+        <div class="screen-card-desc">Chronological timeline of all entries</div>
+      </div>
+      <div class="screen-card">
+        <div class="screen-card-icon">📊</div>
+        <div class="screen-card-name">Insights</div>
+        <div class="screen-card-desc">Dashboard, custom charts, Ramadan views</div>
+      </div>
+      <div class="screen-card">
+        <div class="screen-card-icon">👥</div>
+        <div class="screen-card-name">Social</div>
+        <div class="screen-card-desc">Friends, sharing, competitions</div>
+      </div>
+      <div class="screen-card">
+        <div class="screen-card-icon">👤</div>
+        <div class="screen-card-name">Profile</div>
+        <div class="screen-card-desc">Settings, activity management, account</div>
+      </div>
+    </div>
+
+    <h4>Navigation by Platform</h4>
+    <table>
+      <thead><tr><th>Viewport</th><th>Navigation</th></tr></thead>
+      <tbody>
+        <tr><td>Phone native (&lt; 600px)</td><td>Fixed bottom nav bar (5 tabs)</td></tr>
+        <tr><td>Web mobile (&lt; 600px)</td><td>Fixed bottom nav bar (same as native)</td></tr>
+        <tr><td>Tablet (600–1024px)</td><td>Icon-only left rail (56px) + bottom nav</td></tr>
+        <tr><td>Web desktop (&gt; 1024px)</td><td>Icon-only left rail (56px), no bottom nav</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Key Feature Areas</h3>
+
+    <details>
+      <summary>Streaks</summary>
+      <div>
+        <p>Streaks count consecutive goal successes. Three levels:</p>
+        <table>
+          <thead><tr><th>Level</th><th>What It Tracks</th><th>Driven By</th></tr></thead>
+          <tbody>
+            <tr><td>Per-activity streak</td><td>Did I do this activity?</td><td><code>activity_period_statuses</code></td></tr>
+            <tr><td>Per-goal streak</td><td>Did I meet this specific goal?</td><td><code>goal_period_statuses</code></td></tr>
+            <tr><td>All-goals day streak</td><td>Did I meet all daily goals today?</td><td>Aggregate of above (daily only)</td></tr>
+          </tbody>
+        </table>
+        <p>Icons: 🔥 active streak, 🧊 frozen (pending items exist). Milestones at: 7, 14, 21, 30, 60, 90, 100, 180, 365 days.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Conditions (Life Events)</summary>
+      <div>
+        <p>Conditions are life markers (illness, travel, injury, etc.) that span entire days. They exist independently from activities — conditions record when something happened, and activities can be excused with a condition as the reason.</p>
+        <ul>
+          <li>Day-level granularity (start date, end date)</li>
+          <li>Non-overlapping per preset type (can't have two "Sick" conditions overlapping)</li>
+          <li>Show as chips on Home screen when active</li>
+          <li>Interwoven in Book screen day headers</li>
+          <li>Preset types managed in Settings (Sick, Traveling, Injured, Rest Day, Menstrual, Bereavement + custom)</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Routines (Habit Stacking)</summary>
+      <div>
+        <p>A routine is a sequence of activity templates grouped for habit stacking. The user starts the routine and flows through activities one by one. See <a href="#routines">§6 Routines</a> for full specification.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Social Features</summary>
+      <div>
+        <p>Friends, selective sharing (per-activity, per-friend), emoji reactions (5 emojis + 5 canned messages), and competitions. No public feed, no posting, no free-text messaging. See <a href="#screen-social">Social Screen</a> for full specification.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Competitions</summary>
+      <div>
+        <p>Users create or join challenges. Public or private. Required start and end dates (max 3 months). One or more leaderboards per competition, each tracking a different metric. Individual only (teams = V2). See <a href="#screen-social">Social Screen</a> for details.</p>
+      </div>
+    </details>
+
+    <h3>Platform Differences</h3>
+    <table>
+      <thead><tr><th>Feature</th><th>Native (iOS/Android)</th><th>Web</th></tr></thead>
+      <tbody>
+        <tr><td>Data storage</td><td>Local-first (Drift/SQLite) + cloud sync</td><td>Cloud-only (Supabase direct)</td></tr>
+        <tr><td>Account required</td><td>No (local mode available)</td><td>Yes</td></tr>
+        <tr><td>Offline support</td><td>Full functionality</td><td>No ("You're offline" message)</td></tr>
+        <tr><td>Haptic feedback</td><td>Yes</td><td>No</td></tr>
+        <tr><td>Push notifications</td><td>APNs (iOS) / FCM (Android)</td><td>Browser notifications (if permitted)</td></tr>
+        <tr><td>Biometric lock</td><td>Face ID / Touch ID / Fingerprint</td><td>No</td></tr>
+        <tr><td>Timer in background</td><td>Runs via system (Live Activity / notification)</td><td>Tab must stay open</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 3: DESIGN SYSTEM
+       ═══════════════════════════════════════════════ -->
+  <section id="design-system" class="spec-section">
+    <h2>3. Design System</h2>
+
+    <p>The design system defines every visual decision. All screens use these tokens consistently. The aesthetic is inspired by Islamic geometric art — elegant, structured, warm — while being fully accessible and inclusive.</p>
+
+    <h3 id="colors">Color Palette</h3>
+
+    <h4>Primary — Deep Teal/Emerald</h4>
+    <p>Inspired by turquoise tiles in Islamic mosques (Shah Mosque, Al-Aqsa). Communicates depth, wisdom, and calm.</p>
+    <div class="color-grid">
+      <div class="color-swatch"><div class="swatch-color" style="background:#0D7377"></div><div class="swatch-info"><div class="swatch-name">Primary</div><div class="swatch-hex">#0D7377</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#14A3A8"></div><div class="swatch-info"><div class="swatch-name">Primary Light</div><div class="swatch-hex">#14A3A8</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#095456"></div><div class="swatch-info"><div class="swatch-name">Primary Dark</div><div class="swatch-hex">#095456</div></div></div>
+    </div>
+
+    <h4>Accent — Warm Gold/Amber (Aged/Antique)</h4>
+    <p>Inspired by illuminated Quran manuscripts and gold leaf calligraphy. Signals achievement and milestones.</p>
+    <div class="color-grid">
+      <div class="color-swatch"><div class="swatch-color" style="background:#C8963E"></div><div class="swatch-info"><div class="swatch-name">Accent</div><div class="swatch-hex">#C8963E</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#E8B960"></div><div class="swatch-info"><div class="swatch-name">Accent Light</div><div class="swatch-hex">#E8B960</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#9A7230"></div><div class="swatch-info"><div class="swatch-name">Accent Dark</div><div class="swatch-hex">#9A7230</div></div></div>
+    </div>
+
+    <h4>Neutrals — Warm Grays</h4>
+    <p>Warm grays (not cool/blue) — evoke aged paper and stone, tied to the "book" metaphor.</p>
+    <div class="color-grid">
+      <div class="color-swatch"><div class="swatch-color" style="background:#FAFAF8"></div><div class="swatch-info"><div class="swatch-name">White</div><div class="swatch-hex">#FAFAF8</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#F5F4F2"></div><div class="swatch-info"><div class="swatch-name">Gray 50</div><div class="swatch-hex">#F5F4F2</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#E8E6E3"></div><div class="swatch-info"><div class="swatch-name">Gray 100</div><div class="swatch-hex">#E8E6E3</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#D4D1CC"></div><div class="swatch-info"><div class="swatch-name">Gray 200</div><div class="swatch-hex">#D4D1CC</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#B8B4AE"></div><div class="swatch-info"><div class="swatch-name">Gray 300</div><div class="swatch-hex">#B8B4AE</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#9C9790"></div><div class="swatch-info"><div class="swatch-name">Gray 400</div><div class="swatch-hex">#9C9790</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#7A756E"></div><div class="swatch-info"><div class="swatch-name">Gray 500</div><div class="swatch-hex">#7A756E</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#5C5850"></div><div class="swatch-info"><div class="swatch-name">Gray 600</div><div class="swatch-hex">#5C5850</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#3E3B35"></div><div class="swatch-info"><div class="swatch-name">Gray 700</div><div class="swatch-hex">#3E3B35</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#2A2722"></div><div class="swatch-info"><div class="swatch-name">Gray 800</div><div class="swatch-hex">#2A2722</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#1A1815"></div><div class="swatch-info"><div class="swatch-name">Gray 900</div><div class="swatch-hex">#1A1815</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#121110"></div><div class="swatch-info"><div class="swatch-name">Black</div><div class="swatch-hex">#121110</div></div></div>
+    </div>
+
+    <h4>Semantic Colors</h4>
+    <p>Never used alone to convey meaning — always paired with an icon or text label (accessibility requirement).</p>
+    <div class="color-grid">
+      <div class="color-swatch"><div class="swatch-color" style="background:#2D8659"></div><div class="swatch-info"><div class="swatch-name">Success</div><div class="swatch-hex">#2D8659 + ✓</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#C4841D"></div><div class="swatch-info"><div class="swatch-name">Warning</div><div class="swatch-hex">#C4841D + ⚠</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#C43D3D"></div><div class="swatch-info"><div class="swatch-name">Error</div><div class="swatch-hex">#C43D3D + ✕</div></div></div>
+      <div class="color-swatch"><div class="swatch-color" style="background:#2D6B8A"></div><div class="swatch-info"><div class="swatch-name">Info</div><div class="swatch-hex">#2D6B8A + ℹ</div></div></div>
+    </div>
+
+    <h4>Theme Modes</h4>
+    <table>
+      <thead><tr><th>Token</th><th>Light Mode (default)</th><th>Dark Mode</th></tr></thead>
+      <tbody>
+        <tr><td>Background</td><td><code>#FAFAF8</code></td><td><code>#121110</code></td></tr>
+        <tr><td>Surface (cards)</td><td><code>#FFFFFF</code></td><td><code>#1A1815</code></td></tr>
+        <tr><td>Text Primary</td><td><code>#1A1815</code></td><td><code>#F5F4F2</code></td></tr>
+        <tr><td>Text Secondary</td><td><code>#5C5850</code></td><td><code>#9C9790</code></td></tr>
+        <tr><td>Border</td><td><code>#E8E6E3</code></td><td><code>#3E3B35</code></td></tr>
+      </tbody>
+    </table>
+    <p>Theme options: <strong>Light</strong> (default), <strong>Dark</strong>, <strong>System Auto</strong> (follows device setting).</p>
+
+    <h3 id="typography">Typography</h3>
+
+    <table>
+      <thead><tr><th>Role</th><th>Font</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Headings / Display</td><td><strong>DM Serif Display</strong></td><td>Elegant modern serif. Evokes the "book" metaphor.</td></tr>
+        <tr><td>Body / UI</td><td><strong>Inter</strong></td><td>Gold standard for UI readability. Excellent variable font.</td></tr>
+        <tr><td>Mono / Data</td><td><strong>JetBrains Mono</strong></td><td>Best readability for numbers, stats, streaks, timers.</td></tr>
+        <tr><td>Arabic text</td><td><strong>Amiri</strong></td><td>Traditional Naskh-style for Quranic phrases and Arabic labels.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Type Scale (Major Third — 1.250 ratio)</h4>
+    <table class="token-table">
+      <thead><tr><th>Token</th><th>Size</th><th>Weight</th><th>Font</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Display</td><td>32px</td><td>Bold (700)</td><td>DM Serif Display</td><td>Screen titles, big streak numbers</td></tr>
+        <tr><td>H1</td><td>26px</td><td>Semibold (600)</td><td>DM Serif Display</td><td>Section headers</td></tr>
+        <tr><td>H2</td><td>21px</td><td>Semibold (600)</td><td>DM Serif Display</td><td>Sub-section headers</td></tr>
+        <tr><td>H3</td><td>17px</td><td>Medium (500)</td><td>Inter</td><td>Card titles, list headers</td></tr>
+        <tr><td>Body Large</td><td>17px</td><td>Regular (400)</td><td>Inter</td><td>Primary body text</td></tr>
+        <tr><td>Body</td><td>15px</td><td>Regular (400)</td><td>Inter</td><td>Standard body text</td></tr>
+        <tr><td>Body Small</td><td>13px</td><td>Regular (400)</td><td>Inter</td><td>Secondary info, captions</td></tr>
+        <tr><td>Caption</td><td>11px</td><td>Medium (500)</td><td>Inter</td><td>Labels, timestamps, badges</td></tr>
+      </tbody>
+    </table>
+    <p>All sizes scale with system dynamic text settings. Minimum touch target: 44x44px (iOS) / 48x48dp (Android).</p>
+
+    <h3 id="spacing">Spacing, Radii & Elevation</h3>
+
+    <h4>Spacing Scale (4px base)</h4>
+    <table class="token-table">
+      <thead><tr><th>Token</th><th>Value</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>xs</td><td>4px</td><td>Tight gaps (icon-to-label)</td></tr>
+        <tr><td>sm</td><td>8px</td><td>Related elements within a group</td></tr>
+        <tr><td>md</td><td>12px</td><td>Default padding inside components</td></tr>
+        <tr><td>lg</td><td>16px</td><td>Between components, standard content padding</td></tr>
+        <tr><td>xl</td><td>24px</td><td>Between sections</td></tr>
+        <tr><td>2xl</td><td>32px</td><td>Major section breaks</td></tr>
+        <tr><td>3xl</td><td>48px</td><td>Screen-level padding, hero spacing</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Border Radii</h4>
+    <table class="token-table">
+      <thead><tr><th>Token</th><th>Value</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>none</td><td>0px</td><td>Hard edges (dividers)</td></tr>
+        <tr><td>sm</td><td>6px</td><td>Small components (chips, badges)</td></tr>
+        <tr><td>md</td><td>12px</td><td>Cards, inputs, buttons (signature radius)</td></tr>
+        <tr><td>lg</td><td>16px</td><td>Modal sheets, larger cards</td></tr>
+        <tr><td>xl</td><td>24px</td><td>Bottom sheets, floating panels</td></tr>
+        <tr><td>full</td><td>999px</td><td>Circular (avatars, FAB)</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Shadows & Elevation</h4>
+    <table class="token-table">
+      <thead><tr><th>Level</th><th>Value</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Level 0</td><td>None</td><td>Flat elements</td></tr>
+        <tr><td>Level 1</td><td><code>0 1px 3px rgba(26,24,21,0.08)</code></td><td>Cards, subtle lift</td></tr>
+        <tr><td>Level 2</td><td><code>0 4px 12px rgba(26,24,21,0.12)</code></td><td>Dropdowns, hover cards</td></tr>
+        <tr><td>Level 3</td><td><code>0 8px 24px rgba(26,24,21,0.16)</code></td><td>Modals, FAB</td></tr>
+      </tbody>
+    </table>
+    <p>Warm-toned shadows (using neutral-warm rgba). In dark mode, shadows are replaced with subtle light borders.</p>
+
+    <h3 id="patterns">Islamic Geometric Patterns</h3>
+    <p>Used as <strong>subtle structural textures</strong> — felt more than seen.</p>
+    <table>
+      <thead><tr><th>Context</th><th>Opacity</th></tr></thead>
+      <tbody>
+        <tr><td>Background texture (summary card)</td><td>5–10%</td></tr>
+        <tr><td>Section dividers</td><td>15–20%</td></tr>
+        <tr><td>Achievement / celebration moments</td><td>30–40% (briefly, animated)</td></tr>
+      </tbody>
+    </table>
+    <p>Pattern style: <strong>Tessellations and arabesques</strong> — interlocking stars, hexagons, interlaced geometric shapes representing the interconnectedness of habits and growth.</p>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">🎨</span>
+      <div>Patterns appear on: Home screen summary card, empty state illustrations, achievement badges, splash/loading screen, onboarding backgrounds. They do NOT appear inside cards, as borders, or on data-heavy screens (too distracting).</div>
+    </div>
+
+    <h3>Iconography</h3>
+    <p><strong>Source:</strong> Phosphor Icons (MIT licensed). Outlined (1.5px stroke) = default/inactive. Filled = selected/active. Sizes: 20px (compact), 24px (standard), 28px (prominent).</p>
+
+    <h3 id="animation">Animation & Motion</h3>
+    <table>
+      <thead><tr><th>Type</th><th>Duration</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Micro</td><td>200ms</td><td>Tap feedback, toggle, checkbox</td></tr>
+        <tr><td>Transition</td><td>300ms</td><td>Page transitions, tab switches</td></tr>
+        <tr><td>Reveal</td><td>400ms</td><td>Bottom sheets, modals, dropdowns</td></tr>
+        <tr><td>Celebration</td><td>800ms</td><td>Streak milestones, achievements</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Haptic Feedback (Native Only)</h4>
+    <table>
+      <thead><tr><th>Event</th><th>Haptic</th></tr></thead>
+      <tbody>
+        <tr><td>Toggle / check complete</td><td>Light impact</td></tr>
+        <tr><td>Streak milestone reached</td><td>Medium impact</td></tr>
+        <tr><td>Goal achieved</td><td>Medium impact</td></tr>
+        <tr><td>Error / validation failure</td><td>Light notification (error pattern)</td></tr>
+        <tr><td>Navigation / Scrolling</td><td>None</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Reduced motion:</strong> All animations respect the system "Reduce Motion" setting — crossfade replaces slide transitions, no particle effects. Haptics are unaffected.</p>
+
+    <h3>Time-of-Day Visual Adaptation</h3>
+    <p>The Home screen summary card subtly adapts its visual atmosphere throughout the day. Layout and functionality do NOT change — only the geometric pattern tint.</p>
+
+    <table>
+      <thead><tr><th>Phase</th><th>Trigger (with location)</th><th>Trigger (no location)</th><th>Pattern Tint</th></tr></thead>
+      <tbody>
+        <tr><td>Early Morning</td><td>1hr before Fajr → Sunrise</td><td>5:00 AM → 8:00 AM</td><td>Soft amber, 4%</td></tr>
+        <tr><td>Morning</td><td>Sunrise → Noon</td><td>8:00 AM → 12:00 PM</td><td>Warm gold, 6%</td></tr>
+        <tr><td>Afternoon</td><td>Noon → 1hr before Sunset</td><td>12:00 PM → 5:00 PM</td><td>Default teal, 5%</td></tr>
+        <tr><td>Evening</td><td>1hr before Sunset → Isha</td><td>5:00 PM → 9:00 PM</td><td>Deep teal, 5%</td></tr>
+        <tr><td>Night</td><td>Isha → 1hr before Fajr</td><td>9:00 PM → 5:00 AM</td><td>Muted teal, 3%</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION: COMPONENTS (abbreviated for now)
+       ═══════════════════════════════════════════════ -->
+  <section id="components" class="spec-section">
+    <h2>4. Component Library</h2>
+
+    <p>All reusable UI building blocks. Screen specifications reference these by name.</p>
+
+    <h3>Navigation Components</h3>
+
+    <h4>Bottom Navigation Bar (Phone)</h4>
+    <ul>
+      <li><strong>Tabs:</strong> Home, Book, Insights, Social, Profile</li>
+      <li><strong>Icons:</strong> Phosphor — outlined (inactive), filled (active)</li>
+      <li><strong>Colors:</strong> Active = Primary, inactive = Gray 400</li>
+      <li><strong>Position:</strong> Fixed (not floating). Solid background with subtle top border.</li>
+      <li><strong>Badge:</strong> Notification dot on Social tab</li>
+    </ul>
+
+    <h4>Icon Rail (Tablet/Desktop Web)</h4>
+    <ul>
+      <li>56px wide, icon-only, tooltip on hover</li>
+      <li>Same 5 sections as bottom nav</li>
+      <li>Active icon: Primary color + subtle background tint</li>
+    </ul>
+
+    <h3>Buttons</h3>
+    <table>
+      <thead><tr><th>Type</th><th>Style</th><th>States</th></tr></thead>
+      <tbody>
+        <tr><td>Primary</td><td>Filled Primary bg, white text, 48px min height, md radius</td><td>Default, hover, pressed, disabled, loading</td></tr>
+        <tr><td>Secondary</td><td>Outlined Primary border + text, transparent bg</td><td>Same as primary</td></tr>
+        <tr><td>Tertiary</td><td>No bg/border, Primary text</td><td>Default, hover (underline)</td></tr>
+        <tr><td>Icon</td><td>Ghost (no bg) or contained (subtle bg), 44x44px min</td><td>Default, hover, pressed</td></tr>
+        <tr><td>FAB</td><td>Primary bg, circular, 56x56px, Level 3 shadow</td><td>Default, hover (scale 1.05), pressed (scale 0.95)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Input Components</h3>
+    <p>13 field types available for activity entries. See <a href="#templates">Activity Templates §5.4</a> for full specifications of each type.</p>
+
+    <table>
+      <thead><tr><th>Type</th><th>UI Name</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Preset</td><td>Start Time</td><td>Date/time picker (stored UTC)</td></tr>
+        <tr><td>Preset</td><td>End Time</td><td>Date/time picker (stored UTC)</td></tr>
+        <tr><td>Preset</td><td>Duration</td><td>HH:MM:SS (auto-calculated when start+end exist)</td></tr>
+        <tr><td>Custom</td><td>Number</td><td>Float input with +/- steppers, optional unit</td></tr>
+        <tr><td>Custom</td><td>Text</td><td>Multiline string, max 5,000 chars</td></tr>
+        <tr><td>Custom</td><td>Star Rating</td><td>5 stars, half-star intervals. Tap cycle: full → half → clear</td></tr>
+        <tr><td>Custom</td><td>Mood</td><td>5 emoji faces: 😢😟😐😊😄 with labels. Stored as int 1-5.</td></tr>
+        <tr><td>Custom</td><td>Yes / No</td><td>Two buttons. Boolean.</td></tr>
+        <tr><td>Custom</td><td>Single Choice</td><td>Dropdown with user-defined options. Optionally ordinal.</td></tr>
+        <tr><td>Custom</td><td>Multiple Choice</td><td>Checkboxes. Cannot be ordinal.</td></tr>
+        <tr><td>Custom</td><td>Range</td><td>Number + slider. User-defined min/max/step.</td></tr>
+        <tr><td>Custom</td><td>Location</td><td>GPS, pin on map, or address search. Stored as coordinates.</td></tr>
+        <tr><td>Custom</td><td>List</td><td>Ordered list of text items.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>KitabDateTimePicker</h3>
+    <p>Custom date/time/timezone component used consistently across the app. Three always-visible segments:</p>
+    <div class="mock-card" style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--tp)">
+      Apr 2, 2026 &nbsp;·&nbsp; 8:00 AM &nbsp;·&nbsp; EDT
+    </div>
+    <p>Each segment is independently tappable to edit. Date opens a calendar bottom sheet (with Hijri toggle). Time opens a scroll wheel. Timezone opens a searchable list sorted by UTC offset. Timezone is <strong>always shown</strong> — no option to hide.</p>
+
+    <h3>Data Display Components</h3>
+    <p>Activity cards, streak badges, progress rings, heat map calendars, stat tiles, leaderboard rows, empty states, loading skeletons, error states — all defined in the SPEC.md Component Library (§4). See the <a href="https://github.com/aahmed215/kitab2/blob/main/SPEC.md#4-component-library" target="_blank">full component specifications</a>.</p>
+
+    <h3>Feedback Components</h3>
+    <p>Toast/snackbar (bottom, auto-dismiss 4s), bottom sheets (phone → modal on tablet/desktop), modal dialogs (centered, for destructive confirmations), alert banners (persistent states like offline).</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       REMAINING SECTIONS — PLACEHOLDERS TO BE FILLED
+       Each section will be built out with full content
+       ═══════════════════════════════════════════════ -->
+
+  <section id="screen-home" class="spec-section">
+    <h2>5. Home Screen</h2>
+
+    <div class="callout callout-success">
+      <span class="callout-icon">🎨</span>
+      <div><strong>Visual Mockups:</strong> <a href="../mockups/home-screen.html" target="_blank">Home Screen — Interactive Mockup (iPhone, Android, iPad, Web)</a></div>
+    </div>
+
+    <p>The Home screen is the first thing the user sees. It answers: <strong>"What should I do today, and how am I doing?"</strong></p>
+
+    <h3>App Bar</h3>
+    <p><strong>Left:</strong> "Kitab" in DM Serif Display (H1). Will become branded logo when available.<br>
+    <strong>Right:</strong> Notification bell icon with badge dot (if unread notifications). Tap opens the <a href="#screen-notifications">Notifications screen</a>.</p>
+
+    <h3>Section 1 — Summary Card</h3>
+    <p>Tappable card with subtle Islamic geometric pattern background. Contains:</p>
+
+    <!-- Inline mockup of summary card -->
+    <div class="mock-card" style="position:relative;overflow:hidden;padding:20px">
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;opacity:0.05;background-image:url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 stroke=%22%230D7377%22 stroke-width=%220.8%22%3E%3Cpolygon points=%2230,5 50,17.5 50,42.5 30,55 10,42.5 10,17.5%22/%3E%3C/g%3E%3C/svg%3E');background-size:60px"></div>
+      <div style="position:relative;display:flex;gap:16px;align-items:center">
+        <div style="flex:1">
+          <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--tp)">Assalamu Alaikum, Ahmed</div>
+          <div style="font-size:13px;color:var(--ts)">Tuesday, April 1, 2026</div>
+          <div style="font-size:12px;color:var(--g400);display:flex;align-items:center;gap:4px">☽ Night of 13 Shawwal 1447 AH</div>
+          <div style="font-size:14px;color:var(--ts);margin-top:8px">3 of 5 goals met today</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);margin-top:4px">🔥 <span>12 day all-goals streak</span></div>
+        </div>
+        <div style="width:64px;height:64px;border-radius:50%;border:5px solid var(--g100);border-top-color:var(--primary);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;transform:rotate(220deg)">
+          <span style="transform:rotate(-220deg)">3/5</span>
+        </div>
+      </div>
+    </div>
+
+    <h4>Greeting Priority (single greeting, highest wins)</h4>
+    <table>
+      <thead><tr><th>#</th><th>Greeting</th><th>Condition</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Happy Birthday, [Name]</td><td>User's birthday</td></tr>
+        <tr><td>2</td><td>Eid Mubarak, [Name]</td><td>1-3 Shawwal or 10-13 Dhul Hijjah</td></tr>
+        <tr><td>3</td><td>Happy New Year, [Name]</td><td>January 1</td></tr>
+        <tr><td>4</td><td>Happy Hijri New Year, [Name]</td><td>1 Muharram</td></tr>
+        <tr><td>5</td><td>Jumu'ah Mubarak, [Name]</td><td>Friday</td></tr>
+        <tr><td>6</td><td>Ramadan Mubarak, [Name]</td><td>1-29/30 Ramadan</td></tr>
+        <tr><td>7</td><td>Assalamu Alaikum, [Name]</td><td>Default (Islamic ON)</td></tr>
+        <tr><td>8</td><td>Good morning/afternoon/etc, [Name]</td><td>Default (Islamic OFF)</td></tr>
+      </tbody>
+    </table>
+    <p>Priorities 2-6 require Islamic personalization ON. Without a name (not signed in), greeting shows without name.</p>
+
+    <p><strong>Hijri date:</strong> ☀ (sun) between sunrise and sunset, ☽ (crescent) between sunset and sunrise. Format: "[icon] [Day/Night] of [day] [month] [year] AH". Only shown if Hijri enabled in Settings.</p>
+
+    <p><strong>Progress ring:</strong> Goals met today / total goals whose periods end before midnight. Primary color fill.</p>
+
+    <p><strong>All-goals streak:</strong> 🔥 when active, 🧊 when frozen (pending items). Only counts daily-frequency activities' primary goals.</p>
+
+    <p><strong>Tapping the card</strong> opens a "Today's Summary" bottom sheet with: large progress ring, status breakdown (done/pending/excused), 3-week streak grid, today's stats, active conditions with End button.</p>
+
+    <h3>Section 2 — Active Condition Chips</h3>
+    <p>Horizontally scrollable row. Only shown if conditions are active. No "+ Add" chip — conditions are started via FAB only.</p>
+    <div style="display:flex;gap:8px;margin:12px 0">
+      <div style="display:flex;align-items:center;gap:6px;background:rgba(45,107,138,0.08);border:1px solid rgba(45,107,138,0.18);border-radius:20px;padding:7px 14px;font-size:12px;color:var(--info)">✈️ Traveling · Day 4 <span style="margin-left:4px;opacity:0.6;font-weight:600">×</span></div>
+    </div>
+    <p>Tap ✕ to end condition (today's date as end). Tap chip itself to edit start date or set custom end date.</p>
+
+    <h3>Section 3 — Scheduled Today</h3>
+    <p>Shows all activities with periods that overlap today's midnight-to-midnight window. Ordered: in-progress first, then completed (faded), then excused (faded).</p>
+
+    <h4>Status Icons</h4>
+    <table>
+      <thead><tr><th>Icon</th><th>Status</th><th>Color</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mock-status mock-prog">○</span></td><td>Upcoming / in progress</td><td>Gray 400</td></tr>
+        <tr><td><span class="mock-status mock-done">✓</span></td><td>Completed / goal met</td><td>Success green</td></tr>
+        <tr><td><span class="mock-status mock-pend">?</span></td><td>Pending (past, unaddressed)</td><td>Warning amber</td></tr>
+        <tr><td><span class="mock-status mock-exc">⊘</span></td><td>Excused (with reason)</td><td>Info blue</td></tr>
+        <tr><td><span class="mock-status mock-miss">—</span></td><td>Missed (confirmed)</td><td>Error red</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Tapping a card</strong> opens an action bottom sheet: Record Activity, Link Activity, Mark as Missed (immediate + toast with undo), Add Reason. <strong>No checkbox</strong> — all actions require deliberate tap → bottom sheet → choice.</p>
+
+    <p><strong>Record Activity</strong> opens a smart form based on template: timer form (if time fields), habit form (if boolean goal only), metric form (if numeric), or expanded form (otherwise).</p>
+
+    <h3>Section 4 — Needs Attention</h3>
+    <p>Only shown if unaddressed past periods exist (<strong>no entry AND no status set</strong>). Max 3 items shown. "See All (X)" link opens a full-screen sub-page with filters, search, and same action bottom sheet. Warning amber section header.</p>
+
+    <h3>Section 5 — Mini-Timer Widgets</h3>
+    <p>Above bottom nav. Up to 3. Shows activity name (marquee if long), elapsed time. No action buttons (prevents accidents). Tap opens timer form. Active timer highlighted when its form is open.</p>
+
+    <h3>Other Home Screen Elements</h3>
+    <ul>
+      <li><strong>FAB:</strong> Always visible, bottom-right. See <a href="#fab">§14</a>.</li>
+      <li><strong>Empty state:</strong> "Start tracking to see your progress here." + CTA to create first activity.</li>
+      <li><strong>All-done state:</strong> Progress ring 5/5 is the reward. Milestone shimmer animation at 7, 14, 21, 30, 60, 90, 100, 180, 365 days.</li>
+      <li><strong>Offline:</strong> Amber dot on Profile nav icon. Full-screen banner only after 3+ failed syncs.</li>
+      <li><strong>Pull to refresh:</strong> Full sync + period recomputation + goal cache refresh.</li>
+    </ul>
+
+    <h3>Period Lifecycle on Home</h3>
+    <table>
+      <thead><tr><th>State</th><th>Scheduled Today?</th><th>Needs Attention?</th></tr></thead>
+      <tbody>
+        <tr><td>Period active, no entry yet</td><td>Yes (○ in progress)</td><td>No</td></tr>
+        <tr><td>Period active, entry exists, goal in progress</td><td>Yes (○ in progress, with partial count)</td><td>No</td></tr>
+        <tr><td>Period active, entry exists, goal met</td><td>Yes (✓ faded)</td><td>No</td></tr>
+        <tr><td>Period active, excused</td><td>Yes (⊘ faded)</td><td>No</td></tr>
+        <tr><td>Period ended, entry exists, goal met</td><td>Removed → Book</td><td>No</td></tr>
+        <tr><td>Period ended, entry exists, goal NOT met</td><td>Removed → Book (period = completed, goal = not_met, auto-set)</td><td>No</td></tr>
+        <tr><td>Period ended, no entry, unaddressed</td><td>Removed</td><td>Yes (?)</td></tr>
+        <tr><td>Period ended, missed (user confirmed)</td><td>Removed → Book</td><td>No</td></tr>
+        <tr><td>Period ended, excused</td><td>Removed → Book</td><td>No</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">💡</span>
+      <div><strong>Period status vs Goal status:</strong> A period with linked entries but an unmet goal = <strong>completed period</strong> (the user did the activity) + <strong>not_met goal</strong> (they didn't hit the target). "Missed" only applies when there are NO entries at all. When a period ends with entries but unmet goals, the goal status is auto-set to "not_met" — the user must link more entries or excuse to change it.</div>
+    </div>
+
+    <h3>Responsive Layout</h3>
+    <table>
+      <thead><tr><th>Viewport</th><th>Layout</th></tr></thead>
+      <tbody>
+        <tr><td>Phone (&lt; 600px)</td><td>Single column. Bottom nav.</td></tr>
+        <tr><td>Tablet (600–1024px)</td><td>Two columns: summary+conditions+attention (left), scheduled (right). Bottom nav.</td></tr>
+        <tr><td>Web desktop (&gt; 1024px)</td><td>Single column (max 600px) + icon rail. No bottom nav.</td></tr>
+        <tr><td>Web mobile (&lt; 600px)</td><td>Same as native phone. Bottom nav.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="screen-book" class="spec-section">
+    <h2>6. Book Screen</h2>
+
+    <div class="callout callout-success">
+      <span class="callout-icon">🎨</span>
+      <div><strong>Visual Mockups:</strong> <a href="../mockups/book-screen.html" target="_blank">Book Screen — Interactive Mockup</a></div>
+    </div>
+
+    <p>The Book is the complete chronological record of everything the user has done — their personal journal of activities in digital form.</p>
+
+    <h3>App Bar</h3>
+    <p><strong>Left:</strong> "Book" in DM Serif Display. <strong>Right:</strong> Plain + icon (no circle, distinct from FAB) — opens expanded entry form for retroactive logging. No bulk select mode.</p>
+
+    <h3>Filter Row</h3>
+    <div class="flow">
+      <span class="flow-step">⚙ Filters</span>
+      <span class="flow-step">🔍 Search</span>
+      <span class="flow-step">📅 Date</span>
+      <span class="flow-step">Categories ▾</span>
+      <span class="flow-step">Goal Status ▾</span>
+      <span class="flow-step">Conditions</span>
+    </div>
+    <ul>
+      <li><strong>⚙ Filters:</strong> Bottom sheet with advanced filters (date range, activity templates, entry type)</li>
+      <li><strong>🔍 Search:</strong> Activity name and notes only</li>
+      <li><strong>📅 Date:</strong> Mini-calendar overlay — jump to any date</li>
+      <li><strong>Categories ▾:</strong> Multi-select dropdown of user's categories</li>
+      <li><strong>Goal Status ▾:</strong> Multi-select: Met, Missed, Excused</li>
+      <li><strong>Conditions:</strong> Toggles between entry timeline and condition cards</li>
+    </ul>
+
+    <h3>Timeline Content</h3>
+    <p>Infinite scroll, newest at top. Entries grouped by date with sticky day separator headers.</p>
+
+    <h4>Day Separators</h4>
+    <p>Show date + active conditions interwoven. Conditions show "started" on day 1, "Day X" on continuation, "ended" on last day. Tapping a condition opens detail/edit bottom sheet.</p>
+
+    <h4>Entry Card</h4>
+    <div class="mock-card" style="display:flex;align-items:stretch;overflow:hidden;padding:0">
+      <div style="width:4px;background:var(--primary);border-radius:12px 0 0 12px"></div>
+      <div style="flex:1;padding:12px 14px;display:flex;align-items:center;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--tp)">Read Quran</div>
+          <div style="font-size:11px;color:var(--g400);display:flex;align-items:center;gap:4px">🕌 Spiritual</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--ts);font-family:'JetBrains Mono',monospace">7:00 AM <span style="color:var(--success);font-weight:600">✓</span></div>
+          <div style="font-size:10px;color:var(--g400);font-family:'JetBrains Mono',monospace">20 min &nbsp; 12/10</div>
+        </div>
+      </div>
+    </div>
+    <p><strong>Left border:</strong> Category color (gray if unlinked). <strong>ⓘ tooltip:</strong> shown if linked to template with schedule but not linked to any period. <strong>Interactions:</strong> Tap = edit, long press = Duplicate/Edit/Delete, swipe left = delete with confirmation.</p>
+
+    <h3>Scroll Behavior</h3>
+    <ul>
+      <li>Infinite scroll with loading spinner at bottom</li>
+      <li>"Today ↑" pill button appears when scrolled far down</li>
+      <li>iOS status bar tap to scroll to top</li>
+      <li>Sticky day headers stay visible during scroll</li>
+    </ul>
+
+    <h3>Responsive Layout</h3>
+    <p><strong>Phone:</strong> Single column. <strong>Tablet/Desktop:</strong> Master-detail — timeline (40%) on left, expanded entry form (60%) on right. Tapping a card loads its details in the right panel instantly.</p>
+  </section>
+
+  <section id="screen-insights" class="spec-section">
+    <h2>7. Insights Screen</h2>
+
+    <div class="callout callout-success">
+      <span class="callout-icon">🎨</span>
+      <div><strong>Visual Mockups:</strong> <a href="../mockups/insights-screen.html" target="_blank">Insights Screen — Interactive Mockup</a></div>
+    </div>
+
+    <p>Surfaces meaningful patterns from user data. Two tabs: <strong>Dashboard</strong> (ready-made insights) and <strong>My Charts</strong> (user-created visualizations).</p>
+
+    <h3>Dashboard Tab</h3>
+    <p>All sections respond to a <strong>period selector</strong>: This Week, This Month, Last 30 Days, 3 Months, 6 Months, Year, All Time, Custom Range, and <strong>Ramadan periods</strong> (if Islamic personalization ON).</p>
+
+    <h4>Ramadan Periods (Islamic personalization ON only)</h4>
+    <ul>
+      <li><strong>Ramadan Comparison:</strong> Three-column view for a selected Hijri year:
+        <ul>
+          <li><strong>Pre-Ramadan:</strong> All data from after the previous Ramadan until the start of this Ramadan (baseline performance)</li>
+          <li><strong>Ramadan:</strong> Data during Ramadan only (peak performance period)</li>
+          <li><strong>Post-Ramadan:</strong> All data from after this Ramadan until the start of the next one (retention of improvements)</li>
+        </ul>
+        This shows whether the user maintained their Ramadan gains.
+      </li>
+      <li><strong>Ramadan vs Ramadan:</strong> Selected Ramadan year vs the previous Ramadan — year-over-year comparison of the Ramadan period itself.</li>
+    </ul>
+
+    <h4>Dashboard Sections (9 total, scrollable)</h4>
+    <table>
+      <thead><tr><th>#</th><th>Section</th><th>Content</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Overview Stat Tiles</td><td>Goals met %, best streak, entries logged, time tracked (all with trend arrows vs previous period)</td></tr>
+        <tr><td>2</td><td>Completion Heat Map</td><td>GitHub-style calendar. Color intensity = % daily goals met. Tap day for breakdown. Condition dots.</td></tr>
+        <tr><td>3</td><td>Category Breakdown</td><td>Horizontal bars per category (using category colors). Expandable to individual activities.</td></tr>
+        <tr><td>4</td><td>Activity Rankings</td><td>Sorted list: best first or "needs attention." Completion %, streak, trend.</td></tr>
+        <tr><td>5</td><td>Trends</td><td>Line chart with metric dropdown (overall, per-activity, per-field). Condition overlay bands.</td></tr>
+        <tr><td>6</td><td>Patterns</td><td>Auto-generated insights: day-of-week, time-of-day, mood correlations, condition impact, streak breakers, routine timing. Min 2-4 weeks data.</td></tr>
+        <tr><td>7</td><td>Conditions Summary</td><td>Days per condition, excused count, adjusted completion rate (excluding excused).</td></tr>
+        <tr><td>8</td><td>Routines Performance</td><td>Per-routine: completion %, avg duration, avg start, best/weakest activity. Only if routines exist.</td></tr>
+        <tr><td>9</td><td>Personal Records</td><td>All-time bests. Gold accent. "NEW 🌟" badge on new records. Always all-time regardless of period.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>My Charts Tab</h3>
+    <p>User-created custom charts. Favorites shown first, then all charts. [+ Create Chart] button.</p>
+
+    <h4>Chart Builder</h4>
+    <table>
+      <thead><tr><th>Option</th><th>Choices</th></tr></thead>
+      <tbody>
+        <tr><td>Chart Type</td><td>KPI Number, Line, Vertical Bar, Horizontal Bar, Pie, Heat Map, Progress Ring, Table</td></tr>
+        <tr><td>Data Source</td><td>Specific activity, specific routine, category, all activities, all routines, conditions</td></tr>
+        <tr><td>Measure</td><td>Completion rate, entry count, specific field value, duration, streak length, etc.</td></tr>
+        <tr><td>Calculation</td><td>Sum, Average, Min (Lowest), Max (Highest), Count, Latest</td></tr>
+        <tr><td>Group By</td><td>Daily, Weekly, Monthly, Yearly, Day of Week, Time of Day, Category, Activity</td></tr>
+        <tr><td>Period</td><td>Same as Dashboard period selector</td></tr>
+        <tr><td>Show Conditions</td><td>Toggle — overlays condition periods as colored bands</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Live preview</strong> updates in real-time as options change. <strong>V1 constraint:</strong> one activity/routine per chart. Multi-source comparison = V2.</p>
+  </section>
+
+  <section id="screen-social" class="spec-section">
+    <h2>8. Social Screen</h2>
+
+    <div class="callout callout-success">
+      <span class="callout-icon">🎨</span>
+      <div><strong>Visual Mockups:</strong> <a href="../mockups/social-screen.html" target="_blank">Social Screen — Interactive Mockup</a></div>
+    </div>
+
+    <p>Focused accountability and motivation — not a social media feed. <strong>Account required.</strong> Three tabs: Friends, Shared, Competitions.</p>
+
+    <h3>Friends Tab</h3>
+    <ul>
+      <li><strong>Pending Requests:</strong> Accept/Decline. Decline is silent (sender not notified).</li>
+      <li><strong>Friends List:</strong> Alphabetical, shared activity count. Tap → Friend Detail. Swipe left → Remove.</li>
+      <li><strong>Add Friend (👤+ button):</strong> Search by email/username + invite link (<code>mykitab.app/add/username</code>).</li>
+    </ul>
+
+    <h4>Friend Detail View</h4>
+    <p>Shows friend's avatar, name, bio, friends-since date. Shared activities: current streak, completion rate, which days completed (heat map dots). <strong>Cannot see:</strong> actual entry data, goals, conditions. Reaction button per shared activity.</p>
+
+    <h4>Reactions</h4>
+    <p>Sent as notification. No free-text, no replies.</p>
+    <table>
+      <thead><tr><th>Type</th><th>Always Available</th><th>Islamic Personalization ON Only</th></tr></thead>
+      <tbody>
+        <tr><td>Emojis</td><td>🔥 💪 👏 ⭐</td><td>🤲</td></tr>
+        <tr><td>Messages</td><td>"Keep going!", "You got this!", "Proud of you!", "Stay consistent!"</td><td>"MashAllah!"</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Shared Tab</h3>
+    <p>Centralized sharing management. All activities + routines listed with status (Private / Specific friends / All friends). Per-activity sharing editor with friend checkboxes.</p>
+
+    <h3>Competitions Tab</h3>
+    <p>Active, Upcoming, Completed sections. [+ Create] button.</p>
+
+    <h4>Competition Detail</h4>
+    <p>Rules, leaderboard (top 3 gold/silver/bronze), personal progress, [Log Entry] button, participants, invite link, [Leave Competition].</p>
+
+    <h4>Competition Creation (3 steps)</h4>
+    <div class="flow">
+      <span class="flow-step">1. Basics (name, visibility, dates)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">2. Activity & Leaderboard</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">3. Invite Friends</span>
+    </div>
+    <p>Required start + end dates (max 3 months). Creator can use existing template or create custom activity config. Multiple leaderboards per competition.</p>
+
+    <h4>Personal Activity Linkage on Join</h4>
+    <p>When joining, user is prompted: link to existing template, create new personal template, or "just compete" (no personal tracking).</p>
+
+    <h4>Report & Block</h4>
+    <p>Report: reason dropdown + optional description. Block: immediate unfriend, revokes sharing, prevents future requests. Not notified.</p>
+  </section>
+
+  <section id="screen-profile" class="spec-section">
+    <h2>9. Profile & Settings</h2>
+
+    <div class="callout callout-success">
+      <span class="callout-icon">🎨</span>
+      <div><strong>Visual Mockups:</strong> <a href="../mockups/profile-screen.html" target="_blank">Profile & Settings — Interactive Mockup</a></div>
+    </div>
+
+    <p>User identity + all app configuration. Profile card at top, settings groups below.</p>
+
+    <h3>Profile Card</h3>
+    <p><strong>Signed in:</strong> Avatar (photo or initial), name, email, member since, [Edit Profile]. <strong>Guest:</strong> Generic icon, "Guest", value proposition, [Create Account] + [Sign In]. No badge/warning — card messaging is enough.</p>
+
+    <h3>Settings Groups (10)</h3>
+    <table>
+      <thead><tr><th>#</th><th>Group</th><th>Key Contents</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>My Activities</td><td>Templates + categories (tabs). Activity Detail View with history. Archive/delete with cascade.</td></tr>
+        <tr><td>2</td><td>My Routines</td><td>Routine templates. Routine Detail View.</td></tr>
+        <tr><td>3</td><td>Calendar & Date</td><td>Hijri toggle, Islamic personalization, calculation method, madhab, high-latitude adjustment, Hijri ±2 day adjustment, date/time/timezone format, week start</td></tr>
+        <tr><td>4</td><td>Appearance</td><td>Theme: Light / Dark / System Auto</td></tr>
+        <tr><td>5</td><td>Notifications</td><td>Per-type toggles, reminder time, condition interval. Push permission banner if denied.</td></tr>
+        <tr><td>6</td><td>Privacy & Sharing</td><td>Default sharing, profile visibility, competition invites, blocked users, analytics opt-out</td></tr>
+        <tr><td>7</td><td>Condition Presets</td><td>System presets (hideable, not deletable) + custom. Reorder, usage count.</td></tr>
+        <tr><td>8</td><td>Data & Storage</td><td>Export (JSON/CSV), Import (JSON only), favorite locations, local cache, storage usage</td></tr>
+        <tr><td>9</td><td>Account</td><td>Email, password, biometric lock (native), sign out, delete account (type DELETE)</td></tr>
+        <tr><td>10</td><td>About</td><td>Version, ToS, privacy policy, licenses, contact, rate app, re-run onboarding</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Activity Detail View</h3>
+    <p>Read-only view accessed by tapping an activity in My Activities. Shows: Overview (primary goal streak + completion rate), Goals (all listed, no labels), History (chronological occurrences with status, filterable: All/Met/Missed/Excused/Pending). Edit button (✎) opens template form.</p>
+
+    <h3>Responsive</h3>
+    <p>Phone: full-screen sub-pages. Tablet/Desktop: master-detail (settings list left, content right).</p>
+  </section>
+
+  <section id="screen-notifications" class="spec-section">
+    <h2>10. Notifications</h2>
+
+    <div class="callout callout-success">
+      <span class="callout-icon">🎨</span>
+      <div><strong>Visual Mockups:</strong> <a href="../mockups/notifications-screen.html" target="_blank">Notifications — Interactive Mockup</a></div>
+    </div>
+
+    <p>Full-screen view from the notification bell. Bottom nav stays visible.</p>
+
+    <h3>Layout</h3>
+    <p><strong>App bar:</strong> Back (‹) + "Notifications" + "Clear All" (with confirmation). <strong>Bell badge:</strong> dot only (no count).</p>
+
+    <h3>Notification Types</h3>
+    <table>
+      <thead><tr><th>Type</th><th>Icon</th><th>Action on Tap</th></tr></thead>
+      <tbody>
+        <tr><td>Streak at risk</td><td>🔥</td><td>Navigate to Home → activity card</td></tr>
+        <tr><td>Streak milestone</td><td>🔥</td><td>Navigate to activity detail</td></tr>
+        <tr><td>Reminder to log</td><td>⏱️</td><td>Navigate to Home → activity card</td></tr>
+        <tr><td>Friend request</td><td>👥</td><td>Navigate to Social → requests</td></tr>
+        <tr><td>Competition invite</td><td>🏆</td><td>Navigate to competition detail</td></tr>
+        <tr><td>Competition update</td><td>🏆</td><td>Navigate to competition detail</td></tr>
+        <tr><td>Sync issue</td><td>⚠</td><td>Trigger sync</td></tr>
+        <tr><td>Condition reminder</td><td>🏷️</td><td>Navigate to Home → condition chip</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Interactions</h3>
+    <ul>
+      <li><strong>Tap with action:</strong> Executes action AND deletes notification</li>
+      <li><strong>Tap without action:</strong> Does nothing, stays until swiped</li>
+      <li><strong>Swipe left:</strong> Deletes (no undo)</li>
+      <li><strong>No read/unread state</strong> — exists or doesn't</li>
+    </ul>
+    <p><strong>Empty state:</strong> "You're all caught up" with subtle illustration.</p>
+
+    <h3>Private Activities</h3>
+    <p>Push notifications for private activities use generic text: "Activity reminder" — no activity name on lock screen. In-app card also generic until tapped.</p>
+  </section>
+
+  <section id="screen-onboarding" class="spec-section">
+    <h2>11. Onboarding</h2>
+
+    <div class="callout callout-success">
+      <span class="callout-icon">🎨</span>
+      <div><strong>Visual Mockups:</strong> <a href="../mockups/onboarding-screen.html" target="_blank">Onboarding Flow — Interactive Mockup</a></div>
+    </div>
+
+    <p>First-time user experience. Completable in under 60 seconds. Solves the cold start problem by giving users pre-configured activities.</p>
+
+    <h3>Flow (Native App)</h3>
+    <div class="flow">
+      <span class="flow-step">Splash (2-3s auto)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Returning User Check</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Your Name</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Intro (3 slides)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Islamic Personalization</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Choose Activities</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Routine Suggestion</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Ready!</span>
+    </div>
+
+    <h4>Key Decisions</h4>
+    <ul>
+      <li><strong>Returning user:</strong> Sign In → skip onboarding (data syncs from cloud)</li>
+      <li><strong>Name:</strong> Optional. Personalizes greeting immediately.</li>
+      <li><strong>Islamic personalization:</strong> If yes → enables Hijri + Islamic greetings + requests location permission (for prayer times). If no → both stay off.</li>
+      <li><strong>Starter activities:</strong> 16 pre-configured templates across Popular, Spiritual, Health, Productivity. A few pre-selected by default. Spiritual section only shown if Islamic enabled.</li>
+      <li><strong>Routine suggestion:</strong> Only shown if 3+ related activities selected. Auto-proposes a morning/evening routine.</li>
+      <li><strong>Account tip:</strong> Subtle card at the end — "Create an account anytime to sync and connect." Not a prompt.</li>
+      <li><strong>Permissions:</strong> Contextual only. Location at Islamic step. Notifications after onboarding. Camera on first avatar upload.</li>
+    </ul>
+
+    <h4>Web App Flow</h4>
+    <p>Must authenticate first (landing page). Then same flow minus returning-user check and location permission.</p>
+
+    <h4>Session Persistence</h4>
+    <p>Users stay signed in automatically. Token stored in secure platform storage (Keychain/EncryptedSharedPreferences on native, memory on web). Optional biometric lock in Settings.</p>
+  </section>
+
+  <section id="templates" class="spec-section">
+    <h2>12. Activity Templates</h2>
+
+    <p>The activity template is the foundational data structure. Every entry, goal, streak, and insight depends on how activities are configured.</p>
+
+    <h3>Terminology</h3>
+    <table>
+      <thead><tr><th>Technical</th><th>User-Facing</th></tr></thead>
+      <tbody>
+        <tr><td>Activity Template</td><td><strong>Activity</strong></td></tr>
+        <tr><td>Activity Log/Record</td><td><strong>Entry</strong></td></tr>
+        <tr><td>Metric</td><td><strong>Field</strong></td></tr>
+        <tr><td>Excuse</td><td><strong>Reason</strong> (non-judgmental)</td></tr>
+        <tr><td>Frequency Period</td><td>Not exposed (contextual: "today", "this week")</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Template Sections</h3>
+
+    <h4>1. Details</h4>
+    <ul>
+      <li><strong>Activity Name:</strong> Required. Unique per user (case-insensitive).</li>
+      <li><strong>Category:</strong> Required. Provides icon + color (no separate icon/color per activity).</li>
+      <li><strong>Description:</strong> Optional.</li>
+    </ul>
+
+    <h4>2. Schedule (toggle, default OFF)</h4>
+    <p>When ON: Calendar type (Gregorian/Hijri), start date, optional end date (with ✕ clear button), repeat frequency, expected entries (once/multiple per period), optional time window (specific or dynamic times).</p>
+
+    <p><strong>Dynamic times</strong> from the <a href="#apis">Aladhan API</a>: Fajr, Sunrise, Duha, Dhuhr, Asr, Maghrib/Sunset, Isha, 1/3 Night, Middle of Night, 2/3 Night. Both start and end must be same type (no mixing). Midnight crossover warning if end ≤ start.</p>
+
+    <p><strong>High-latitude locations:</strong> If sunrise/sunset unavailable, dynamic times fall back to full-day period. Additional setting for adjustment method (Middle of Night, One-Seventh, Angle-Based, Nearest Latitude).</p>
+
+    <p><strong>Schedule requires goals.</strong> If schedule is ON but no goals defined, system auto-creates an implicit habit goal ("Did at least one entry get logged?").</p>
+
+    <h4>3. Fields (1–20 per template)</h4>
+    <p>13 field types. All optional to fill in during logging (no required fields). See <a href="#components">Component Library</a> for the full field type table. Default <strong>Notes</strong> field always present on every entry (not configurable). Fields ordered by template sort order, reorderable via drag.</p>
+
+    <h4>4. Goals (toggle, default OFF)</h4>
+
+    <p><strong>Quick Setup:</strong> Sentence builder. With schedule: "I want the [field] to be [at least ▾] [5] [km] per [day]" (period locked to schedule). Without schedule: "I want the [weight] to be [at most ▾] [200] [lbs]" (no period — standing target).</p>
+
+    <p><strong>Comparison options:</strong> ≥, ≤, &gt;, &lt;, =, <strong>between</strong>, <strong>not between</strong>.</p>
+
+    <p><strong>Custom Goal:</strong> X [comparison] Y formula builder. X = field + scope (most recent, current period, last N entries/days, all-time) + aggregation (sum, count, lowest, highest, average, mode). Y = static value or dynamic (another aggregation). Optional <strong>consistency layer</strong>: "meet this goal in at least X of the last Y periods."</p>
+
+    <p><strong>Primary goal:</strong> One goal designated as primary. Shown on Home screen card. Drives all-goals day streak. Other goals have their own per-goal streaks.</p>
+
+    <h4>5. Summary View</h4>
+    <p>Auto-generated plain text summary at the bottom of template setup. Updates live as user configures.</p>
+
+    <h3>Schedule Versioning</h3>
+    <p>When schedule/goals change, user is asked: <strong>future only</strong> (new version appended, old periods preserved) or <strong>retroactive</strong> (versions collapsed, all statuses recomputed). Smart detection: if applying future-only but start date is in the past, auto-adjust to today.</p>
+  </section>
+
+  <section id="routines" class="spec-section">
+    <h2>13. Routines</h2>
+
+    <p>A routine is a sequence of activity templates for <strong>habit stacking</strong>. Start once, flow through each activity sequentially.</p>
+
+    <h3>Configuration</h3>
+    <p>Lives in Settings → My Routines. Same structure as activity templates: name (unique), category, description, optional schedule, optional goals, primary goal. References existing activity templates (min 2, no duplicates within routine, no nesting).</p>
+
+    <h4>Routine-Level Goal Metrics (4 only)</h4>
+    <table>
+      <thead><tr><th>Metric</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Start time</td><td>When the first activity started</td></tr>
+        <tr><td>End time</td><td>When the last activity ended</td></tr>
+        <tr><td>Active duration</td><td>Sum of activity durations (excludes idle)</td></tr>
+        <tr><td>Activities completed</td><td>Count or % of activities done</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Execution Flow</h3>
+    <p>Started from <strong>Home screen only</strong> (not FAB). Activity list with statuses, current activity form inline (smart form selection), skip/excuse/miss per activity. User can reorder or jump to activities mid-routine. Routine stays open past scheduled window.</p>
+
+    <h3>Routine Period Status</h3>
+    <table>
+      <thead><tr><th>#</th><th>Status</th><th>Condition</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Pending</strong></td><td>Any activity has pending status</td></tr>
+        <tr><td>2</td><td><strong>Partial</strong></td><td>All addressed but mixed statuses</td></tr>
+        <tr><td>3</td><td><strong>Excused</strong></td><td>All activities excused</td></tr>
+        <tr><td>4</td><td><strong>Missed</strong></td><td>All activities missed</td></tr>
+        <tr><td>5</td><td><strong>Completed</strong></td><td>All activities have linked entries (no excuses, no misses)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Cascade Rules</h3>
+    <p><strong>Down (routine → activities):</strong> Marking routine as excused/missed cascades to all activities within the routine's period only. <strong>Up (activities → routine):</strong> Independent entry logged within routine's time window updates that segment. Outside the window, routine segment unaffected.</p>
+
+    <h3>Constraints</h3>
+    <p>One active routine at a time. Up to 3 standalone timers alongside. Mini-widget shows progress (X/Y) + elapsed time.</p>
+  </section>
+
+  <section id="fab" class="spec-section">
+    <h2>14. FAB & Entry Points</h2>
+
+    <h3>FAB — Floating Action Button</h3>
+    <p>Visible on every screen. 56px circular, Primary color, bottom-right.</p>
+
+    <h4>Single Tap (Phone/Tablet) — 2-Layer Arc</h4>
+    <div class="flow">
+      <span class="flow-step">Tap FAB (+→✕)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Layer 1: Record Activity / Start Condition</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Layer 2 (if Record): Timer / Habit / Metric</span>
+    </div>
+
+    <h4>Single Click (Web Desktop) — 4-Option Arc</h4>
+    <div class="flow">
+      <span class="flow-step">Click FAB</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Timer / Habit / Metric / Condition (all at once)</span>
+    </div>
+
+    <h4>Long Press (Native) — Skip to Layer 2</h4>
+    <p>Skips the Layer 1 options (Record Activity / Start Condition) and goes directly to the 3 recording sub-options: Timer, Habit, Metric. The user already committed to recording by long-pressing — this saves one tap.</p>
+
+    <h3>Quick Log Forms (Iceberg Pattern)</h3>
+
+    <table>
+      <thead><tr><th>Form</th><th>Collapsed (Minimum)</th><th>Auto Behavior</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Timer ⏱️</strong></td><td>Timer starts immediately. Activity search field. Editable start time. Pause/Stop.</td><td>Timer begins on open. Segments on pause/resume. Stop auto-expands to full form.</td></tr>
+        <tr><td><strong>Habit ✓</strong></td><td>Activity search. ✓ Yes / ✕ No buttons.</td><td>✓ creates entry + closes. ✕ marks period as missed + closes.</td></tr>
+        <tr><td><strong>Metric 📊</strong></td><td>Activity search. Primary numeric field (switchable via dropdown label). +/- steppers. Default 0.</td><td>Save button. Only primary field saved in collapsed; others null unless expanded.</td></tr>
+      </tbody>
+    </table>
+
+    <p>All forms: "▼ More details" expands to show all configured fields, notes, date/time picker.</p>
+
+    <h3>All Entry Points</h3>
+    <table>
+      <thead><tr><th>Entry Point</th><th>Template Link</th><th>Period Link</th><th>logged_at</th><th>Form</th></tr></thead>
+      <tbody>
+        <tr><td>FAB → Timer</td><td>User searches</td><td>Auto-suggested</td><td>Now</td><td>Collapsed timer</td></tr>
+        <tr><td>FAB → Habit</td><td>User searches</td><td>Auto-suggested</td><td>Now</td><td>Collapsed habit</td></tr>
+        <tr><td>FAB → Metric</td><td>User searches</td><td>Auto-suggested</td><td>Now</td><td>Collapsed metric</td></tr>
+        <tr><td>Home → Card → Record</td><td>Pre-linked</td><td>Pre-linked (today)</td><td>Now</td><td>Smart (by template)</td></tr>
+        <tr><td>Home → Attention → Record</td><td>Pre-linked</td><td>Pre-linked (past)</td><td>Now</td><td>Smart (by template)</td></tr>
+        <tr><td>Book → + button</td><td>User searches</td><td>Auto-suggested</td><td>Now</td><td>Expanded</td></tr>
+        <tr><td><span class="badge badge-v2">V2</span> Health device</td><td>Auto-linked</td><td>Auto-linked</td><td>From source</td><td>Auto (no form)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="entry-form" class="spec-section">
+    <h2>15. Entry Form (Expanded)</h2>
+
+    <p>Full-featured form for creating/editing entries. Appears from: Book + button, Home card Record (when template has no time/habit/numeric), timer stop (auto-expands), "More details" on any quick log, and tapping existing entries.</p>
+
+    <h3>Layout</h3>
+    <ul>
+      <li><strong>Activity search:</strong> Text input with template suggestions (ranked by recency → frequency → alphabetical). Link to template or type new name.</li>
+      <li><strong>Category line:</strong> Only shown if linked. Icon + name.</li>
+      <li><strong>Fields:</strong> All configured fields in template sort order. All default to null (optional). Duration auto-calculates from Start+End.</li>
+      <li><strong>Timer segments:</strong> Shown if timer entry. Each segment editable. Merge/delete segments.</li>
+      <li><strong>Notes:</strong> Always present. Freeform text.</li>
+      <li><strong>Logged at:</strong> Defaults to now. Editable (KitabDateTimePicker).</li>
+      <li><strong>Period link:</strong> Auto-suggested, overridable, unlinkable.</li>
+      <li><strong>Actions:</strong> Save, Duplicate (edit mode), Delete (edit mode, with confirmation).</li>
+    </ul>
+
+    <h3>Template Switching (Union Logic)</h3>
+    <p>When changing template link: all existing fields remain. New template fields matched by label (case-insensitive) + type + unit. Matches carry over values. Non-matches added as null. Nothing removed. Max 20 fields normally; exceeded allowed on template switch.</p>
+
+    <h3>Unlinked Entries (No Template)</h3>
+    <p>Available field types: Start Time, End Time, Duration, Number, Text, Star Rating, Mood, Yes/No, Location, List. <strong>NOT available:</strong> Single Choice, Multiple Choice, Range (require pre-configuration).</p>
+
+    <h3>Close/Discard</h3>
+    <p>Compare current state to last saved. If changed: "You have unsaved changes. [Discard] [Keep Editing]". No drafts.</p>
+  </section>
+
+  <section id="period-engine" class="spec-section">
+    <h2>16. Period Engine</h2>
+    <p>Computes <strong>when activities are expected</strong>. Periods are computed on-the-fly, <strong>never stored in the database</strong>.</p>
+    <h3>Why Not Stored?</h3>
+    <ul><li>Open-ended schedules = infinite rows</li><li>Dynamic time windows depend on real-time location (travel changes prayer times)</li><li>Schedule versioning requires recomputation</li></ul>
+    <h3>Computation by Frequency</h3>
+    <table><thead><tr><th>Frequency</th><th>Period Span</th><th>Notes</th></tr></thead><tbody>
+      <tr><td>Daily</td><td>Full day (midnight-midnight Gregorian, sunset-sunset Hijri)</td><td>With time window: narrowed</td></tr>
+      <tr><td>Weekly</td><td>Selected days or full week</td><td>Consecutive days: one period or separate (user choice). Week start from Settings.</td></tr>
+      <tr><td>Monthly</td><td>Selected days of month</td><td>Consecutive: one or separate. Short month: defaults to last day (not skip).</td></tr>
+      <tr><td>Custom</td><td>Single day per recurrence</td><td>Every X days/weeks/months/years from start date.</td></tr>
+    </tbody></table>
+    <h3>When Computed</h3>
+    <p>On app open, Home navigation, midnight/sunset boundary, activity detail view, streak calculation, entry linkage. Never precomputed for future dates. Pure math — fast (milliseconds for 365 days).</p>
+    <h3>"Today" Definition</h3>
+    <p>Always midnight-to-midnight for Home screen and all-goals streak, regardless of activity's calendar type. Hijri activities still show if their period overlaps.</p>
+  </section>
+
+  <section id="goal-engine" class="spec-section">
+    <h2>17. Goal Engine</h2>
+    <p>Evaluates whether goals are met. Manages active vs finalized evaluation and caching.</p>
+    <h3>Active vs Finalized</h3>
+    <table><thead><tr><th>State</th><th>Display</th><th>Storage</th></tr></thead><tbody>
+      <tr><td>Active period (ongoing)</td><td>"In progress" (neutral, not red)</td><td>Computed on-the-fly, cached in memory</td></tr>
+      <tr><td>Finalized period (ended)</td><td>Met / Not met / Excused</td><td>Written to <code>goal_period_statuses</code></td></tr>
+    </tbody></table>
+    <h3>Goal Types</h3>
+    <p>Frequency (count entries), Value (aggregate field values), Custom (X comparison Y with dynamic targets), Consistency (pass rate across N periods), Combined (AND/OR groups). Full evaluation logic for each type in SPEC.md §10.3.</p>
+    <h3>Goal-Level Reasons</h3>
+    <p>When a period is completed but a specific goal fails, the user can add a reason per goal (not just per period). If an active condition exists, the app proactively prompts: "Would you like to add a reason? [Skip] [Add Reason]"</p>
+    <h3>Caching</h3>
+    <p>In-memory (Riverpod state). Invalidated by: entry changes, goal config changes, schedule changes, period status changes, sync pulling new data. Finalized periods use DB rows as permanent cache.</p>
+  </section>
+
+  <section id="linkage-engine" class="spec-section">
+    <h2>18. Linkage Engine</h2>
+    <p>Connects entries to templates and periods. The bridge between what users log and the structure they defined.</p>
+    <h3>Two-Layer Linkage</h3>
+    <table><thead><tr><th>Layer</th><th>What</th><th>Options</th></tr></thead><tbody>
+      <tr><td><strong>Layer 1</strong></td><td>Activity Template</td><td>Link, change, unlink (becomes quick entry)</td></tr>
+      <tr><td><strong>Layer 2</strong></td><td>Period (within template)</td><td>Link, change, unlink. Only if Layer 1 set + template has schedule.</td></tr>
+    </tbody></table>
+    <h3>Linkage Timestamp Priority</h3>
+    <p>For auto-suggesting which period: 1) Start Time field, 2) End Time field, 3) <code>logged_at</code>. Always overridable by user.</p>
+    <h3>Frozen Period Boundaries</h3>
+    <p>When linked, <code>period_start</code> and <code>period_end</code> are frozen on the entry (UTC). Handles timezone changes and travel. Never recalculated unless user chooses "apply retroactively" on schedule change.</p>
+    <h3>Pending Detection</h3>
+    <p>On app open: for each scheduled activity, check past periods with no entry + no status → create 'pending' row in <code>activity_period_statuses</code>. Makes "Needs Attention" queries simple DB lookups.</p>
+  </section>
+
+  <section id="sync-engine" class="spec-section">
+    <h2>19. Sync Engine</h2>
+    <h3>Architecture</h3>
+    <div class="diagram"><pre>
+Native App → writes to → Local SQLite (Drift)
+           → queues in → sync_queue table
+           → when online → pushes to Supabase
+           → pulls latest → merges into Local SQLite
+    </pre></div>
+    <p>Web app reads/writes Supabase directly (no local DB).</p>
+    <h3>Principles</h3>
+    <ol><li><strong>Local-first on native:</strong> Every write → local first. UI reads local.</li><li><strong>Cloud-only on web:</strong> Direct Supabase. Offline = "You're offline" message.</li><li><strong>Last-write-wins:</strong> Most recent <code>updated_at</code> wins per record.</li></ol>
+    <h3>Sync Triggers</h3>
+    <table><thead><tr><th>Trigger</th><th>Action</th></tr></thead><tbody>
+      <tr><td>App open</td><td>Full sync (push + pull)</td></tr>
+      <tr><td>Every 5 minutes</td><td>Background sync</td></tr>
+      <tr><td>Home navigation</td><td>Sync if &gt; 1 min since last</td></tr>
+      <tr><td>Significant write</td><td>Push immediately</td></tr>
+      <tr><td>Pull-to-refresh</td><td>Full manual sync</td></tr>
+      <tr><td>Foreground resume</td><td>Sync if &gt; 1 min since last</td></tr>
+    </tbody></table>
+    <p>Syncs run on background thread. Never block UI. If sync in progress + another triggered, second is queued.</p>
+  </section>
+
+  <section id="streak-engine" class="spec-section">
+    <h2>20. Streaks & Period Lifecycle</h2>
+    <h3>Streak Rules</h3>
+    <table><thead><tr><th>Status</th><th>Per-Activity</th><th>Per-Goal</th><th>All-Goals Day</th><th>Icon</th></tr></thead><tbody>
+      <tr><td>✓ Completed</td><td>+1</td><td>Met = +1</td><td>Counts if all daily primary goals met</td><td>🔥</td></tr>
+      <tr><td>⊘ Excused</td><td>No change</td><td>No change</td><td>No change (preserved, not advanced)</td><td>🔥</td></tr>
+      <tr><td>○ Upcoming</td><td>No effect</td><td>No effect</td><td>No effect</td><td>🔥</td></tr>
+      <tr><td>? Pending</td><td>Frozen</td><td>Frozen</td><td>Frozen</td><td>🧊</td></tr>
+      <tr><td>— Missed</td><td>Reset to 0</td><td>Reset to 0</td><td>Reset to 0</td><td>🔥</td></tr>
+    </tbody></table>
+    <h3>All-Goals Day Streak</h3>
+    <p>Only activities whose periods <strong>end before tonight's midnight</strong> count. Only <strong>primary goal</strong> matters. Excused days preserve but don't advance. Mix of met + excused = no change. Any miss = reset.</p>
+    <table><thead><tr><th>Frequency</th><th>Participates in Day Streak?</th></tr></thead><tbody>
+      <tr><td>Daily (period ends today)</td><td>Yes</td></tr>
+      <tr><td>Daily (period ends tomorrow, e.g., Isha→Fajr)</td><td>Tomorrow's streak</td></tr>
+      <tr><td>Weekly/Monthly/Custom</td><td>Only on the day the period ends</td></tr>
+      <tr><td>No schedule</td><td>No (standing target only)</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="database" class="spec-section">
+    <h2>21. Database Schema</h2>
+    <p>All tables in Supabase (PostgreSQL). Local schema mirrors cloud exactly via Drift/SQLite.</p>
+
+    <h3>Simplified ER Diagram</h3>
+    <div class="diagram"><pre>
+users (username UNIQUE)
+ ├── categories (UNIQUE name/user)
+ │     ├── activities (UNIQUE name/user, is_private)
+ │     │     ├── entries (name independent, source, external_id)
+ │     │     ├── activity_period_statuses (UNIQUE activity+period)
+ │     │     └── goal_period_statuses (UNIQUE activity+goal+period)
+ │     └── routines (UNIQUE name/user, is_private)
+ │           ├── routine_entries → entries (via routine_entry_id)
+ │           ├── routine_period_statuses
+ │           └── routine_goal_period_statuses
+ ├── condition_presets (UNIQUE label/user)
+ │     └── conditions (non-overlapping per preset)
+ ├── notifications
+ ├── friends (UNIQUE user pair)
+ ├── activity_shares (activity_id OR routine_id, is_private_for_viewer)
+ ├── reactions
+ ├── user_charts
+ ├── competitions → competition_participants → competition_entries
+ ├── user_reports, blocked_users
+ └── settings (in users.settings JSONB)
+    </pre></div>
+
+    <h3>Key Tables</h3>
+    <details><summary>users</summary><div>
+      <p>id (UUID PK), email, username (UNIQUE), name, avatar_url, bio, birthday, timezone, settings (JSONB), created_at, updated_at</p>
+    </div></details>
+    <details><summary>categories</summary><div>
+      <p>id, user_id (FK), name (UNIQUE per user, case-insensitive), icon, color, sort_order, created_at, updated_at</p>
+    </div></details>
+    <details><summary>activities</summary><div>
+      <p>id, user_id, category_id (FK), name (UNIQUE per user), description, is_archived, schedule (JSONB versioned), fields (JSONB), goals (JSONB versioned), primary_goal_id, is_private, created_at, updated_at</p>
+    </div></details>
+    <details><summary>entries</summary><div>
+      <p>id, user_id, name, activity_id (FK nullable), period_start, period_end, link_type, field_values (JSONB), timer_segments (JSONB), notes, routine_entry_id (FK nullable), source (nullable — 'manual' or V2 source), external_id (nullable), logged_at, created_at, updated_at</p>
+    </div></details>
+    <details><summary>activity_period_statuses</summary><div>
+      <p>id, user_id, activity_id (FK), period_start, period_end, status ('completed'/'missed'/'excused'/'pending'), condition_id (FK nullable), resolved_at, created_at, updated_at. UNIQUE(user_id, activity_id, period_start, period_end). 'completed'/'pending' = system-computed. 'missed'/'excused' = user decisions (preserved during sync merge).</p>
+    </div></details>
+    <details><summary>goal_period_statuses</summary><div>
+      <p>id, user_id, activity_id (FK), goal_id (text — matches JSONB), period_start, period_end, status ('met'/'not_met'/'excused'), condition_id, reason_text. UNIQUE per activity+goal+period. Only created when period = 'completed'.</p>
+    </div></details>
+
+    <p>Full table definitions for all 20+ tables available in <a href="https://github.com/aahmed215/kitab2/blob/main/SPEC.md#12-database-schema" target="_blank">SPEC.md §12</a>.</p>
+
+    <h3>Local-Only Tables</h3>
+    <p><code>sync_queue</code> (table_name, record_id, operation, payload, synced_at) and <code>local_meta</code> (key-value for last_sync_timestamp, device_id, etc.).</p>
+  </section>
+
+  <section id="auth" class="spec-section">
+    <h2>22. Authentication</h2>
+    <h3>Account States</h3>
+    <table><thead><tr><th>State</th><th>Where</th><th>Capabilities</th></tr></thead><tbody>
+      <tr><td>Anonymous (Guest)</td><td>Native only</td><td>Full local. No sync/social/web.</td></tr>
+      <tr><td>Signed in</td><td>Native + Web</td><td>Full functionality.</td></tr>
+      <tr><td>Signed out (preserved)</td><td>Native</td><td>Local data preserved. Re-sign-in triggers merge.</td></tr>
+    </tbody></table>
+    <h3>Auth Methods</h3>
+    <p>Email/password (8 char min, no complexity) + 8-digit OTP email verification (via Resend/Supabase) + Google Sign-In + Apple Sign-In. Social sign-in skips email verification.</p>
+    <h3>Create Account Flow</h3>
+    <div class="flow">
+      <span class="flow-step">Form (name, email, password)</span><span class="flow-arrow">→</span>
+      <span class="flow-step">OTP Verification (8 digits, 1hr expiry)</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Data Migration (if anonymous data exists)</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Home</span>
+    </div>
+    <p>Age confirmation checkbox: "I am at least 13 years old" + ToS/Privacy agreement.</p>
+    <h3>Session Persistence</h3>
+    <p>Native: JWT in secure storage (Keychain/EncryptedSharedPreferences). Auto-refresh. Never re-auth unless sign-out/revoked. Web: Supabase session in memory. Optional biometric lock (native).</p>
+  </section>
+
+  <section id="sync-conflicts" class="spec-section">
+    <h2>23. Sync Conflict Resolution</h2>
+    <h3>12-Step Merge Algorithm</h3>
+    <div class="diagram"><pre>
+Step 1:  Merge settings/profile (last-write-wins)
+Step 2:  Merge categories (name conflicts → last-write-wins, cascade IDs)
+Step 3:  Merge condition presets (label conflicts → last-write-wins, cascade IDs)
+Step 4:  Merge activities (name conflicts → ASK USER, cascade entries)
+Step 5:  Merge condition records (overlap → merge dates, cascade IDs)
+Step 6:  Merge entries (union + last-write-wins on same ID)
+Step 7:  Recompute period statuses from entries (preserve user decisions)
+Step 8:  Recompute goal statuses from entries (preserve user excuses)
+Step 9:  Merge friends (most advanced status wins)
+Step 10: Merge activity shares (cascade to winning template IDs)
+Step 11: Merge competitions + participants + entries
+Step 12: Clear and regenerate notifications
+    </pre></div>
+    <p>Steps 7-8 are <strong>recomputation, not merge</strong> — system-computed statuses (completed, pending, met, not_met) are recomputed from merged entries. User-set statuses (excused, missed) are preserved.</p>
+    <h3>Template Conflict UI</h3>
+    <p>When duplicate activity names detected, sync pauses. User sees both versions: schedule summary, field/goal count, entry count, last edited date, last record date. User picks which to keep. All entries from loser relink to winner.</p>
+  </section>
+
+  <section id="flutter-arch" class="spec-section">
+    <h2>24. Flutter Architecture</h2>
+    <h3>Project Structure</h3>
+<pre>
+lib/
+├── main.dart                    // App entry point
+├── app.dart                     // MaterialApp, routing, theme
+│
+├── core/                        // Shared across all features
+│   ├── theme/                   // KitabTheme, colors, typography, spacing tokens
+│   ├── widgets/                 // Reusable components (KitabCard, KitabButton, etc.)
+│   ├── extensions/              // Dart extensions (DateTime, String, etc.)
+│   ├── utils/                   // Helpers (formatters, validators, prayer_time_utils)
+│   └── constants/               // App-wide constants, routes, breakpoints
+│
+├── config/                      // Environment configuration
+│   ├── env.dart                 // Loads .env (Supabase URL, keys)
+│   └── supabase_config.dart     // Supabase client initialization
+│
+├── data/                        // Data layer
+│   ├── models/                  // Data classes (Activity, Entry, Category, etc.)
+│   ├── repositories/            // Repository interfaces + implementations
+│   │   ├── activity_repository.dart
+│   │   ├── entry_repository.dart
+│   │   ├── category_repository.dart
+│   │   └── ...
+│   ├── supabase/                // Supabase data source
+│   │   └── supabase_client.dart
+│   ├── drift/                   // Local SQLite (Drift)
+│   │   ├── database.dart        // Database definition
+│   │   ├── tables/              // Table definitions mirroring Supabase
+│   │   └── daos/                // Data Access Objects
+│   └── sync/                    // Sync engine
+│       ├── sync_engine.dart
+│       ├── sync_queue.dart
+│       └── conflict_resolver.dart
+│
+├── engines/                     // Core business logic engines
+│   ├── period_engine.dart       // Computes scheduled periods
+│   ├── goal_engine.dart         // Evaluates goals
+│   ├── linkage_engine.dart      // Links entries to templates/periods
+│   └── streak_engine.dart       // Calculates streaks
+│
+├── features/                    // Feature-based modules
+│   ├── home/                    // Home screen
+│   │   ├── home_screen.dart
+│   │   ├── widgets/             // Summary card, activity cards, etc.
+│   │   └── providers/           // Riverpod providers for home data
+│   ├── book/
+│   ├── insights/
+│   ├── social/
+│   ├── profile/
+│   ├── notifications/
+│   ├── onboarding/
+│   ├── auth/
+│   ├── timer/                   // Timer logic, mini-widget
+│   ├── routine/                 // Routine execution flow
+│   └── entry/                   // Entry form (expanded + collapsed)
+│
+├── providers/                   // Global Riverpod providers
+│   ├── auth_provider.dart
+│   ├── sync_provider.dart
+│   ├── prayer_time_provider.dart
+│   └── settings_provider.dart
+│
+└── services/                    // External services
+    ├── prayer_time_service.dart  // Aladhan API
+    ├── hijri_calendar_service.dart
+    ├── notification_service.dart
+    ├── analytics_service.dart    // PostHog
+    └── crash_service.dart        // Sentry
+</pre>
+    <h3>State Management — Riverpod</h3>
+    <p>All state managed via Riverpod providers. Repository pattern: UI ← Provider ← Repository ← Data Source (Supabase or Drift).</p>
+    <h3>Key Packages</h3>
+    <p>See <a href="#dependencies">§31 Dependencies</a> for the full list.</p>
+  </section>
+
+  <section id="security" class="spec-section">
+    <h2>25. Security & Privacy</h2>
+    <h3>Row Level Security (RLS)</h3>
+    <p>All Supabase tables have RLS enabled. Users can only access their own records (<code>user_id = auth.uid()</code>). Social tables have expanded policies for accepted friends. Competitions readable by participants.</p>
+    <h3>Private Activities</h3>
+    <p>Activities/routines can be marked <strong>Private</strong> (<code>is_private</code> boolean). Name and details blurred throughout the app. Tap to reveal temporarily. <strong>Double-tap "Kitab" title</strong> on Home to reveal all (toasts "Private activities revealed"). Auto-re-blurs on app background. Push notifications use generic text. Private activities CAN be shared — privacy is about onlookers, not friends. Recipients can independently mark shared items as private on their device.</p>
+    <h3>Other Security</h3>
+    <ul>
+      <li><strong>Input validation:</strong> Max lengths per field, sanitized text, no HTML rendering.</li>
+      <li><strong>Tokens:</strong> JWT in secure storage (native), memory (web). Auto-refresh.</li>
+      <li><strong>Encryption:</strong> TLS in transit, AES-256 at rest (Supabase). Local SQLite unencrypted V1 (device security boundary).</li>
+      <li><strong>JSONB safety:</strong> 100KB max payload, strict types, no string concatenation.</li>
+      <li><strong>Rate limiting:</strong> Supabase built-in for auth. 100 records/sync batch.</li>
+      <li><strong>No secrets in client code.</strong> Service role key only in Edge Functions.</li>
+    </ul>
+  </section>
+
+  <section id="apis" class="spec-section">
+    <h2>26. APIs & External Services</h2>
+    <table>
+      <thead><tr><th>Service</th><th>Purpose</th><th>Key/Auth</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Supabase</strong></td><td>Database, auth, storage, real-time, edge functions</td><td>Publishable key (client) + Service role (edge functions only)</td><td>Free tier (generous)</td></tr>
+        <tr><td><strong>Aladhan API</strong></td><td>Prayer times + Hijri calendar</td><td>No API key required</td><td>Free</td></tr>
+        <tr><td><strong>Resend</strong></td><td>Transactional emails (OTP, password reset)</td><td>Configured in Supabase SMTP</td><td>Free tier (3K emails/month)</td></tr>
+        <tr><td><strong>PostHog</strong></td><td>Product analytics</td><td>Project API key</td><td>Free tier (1M events/month)</td></tr>
+        <tr><td><strong>Sentry</strong></td><td>Crash reporting</td><td>DSN</td><td>Free tier (5K errors/month)</td></tr>
+        <tr><td><strong>OpenStreetMap</strong></td><td>Map tiles for Location field</td><td>No key required</td><td>Free</td></tr>
+        <tr><td><strong>Google OAuth</strong></td><td>Google Sign-In</td><td>Client IDs (iOS, Android, Web)</td><td>Free</td></tr>
+        <tr><td><strong>Apple Sign-In</strong></td><td>Apple Sign-In</td><td>Service ID + Key</td><td>Free (with Apple Developer $99/yr)</td></tr>
+      </tbody>
+    </table>
+    <h3>Prayer Time API — Aladhan</h3>
+    <p>Supports all major calculation methods + madhabs + high-latitude adjustments. The API returns an entire month in one call — <strong>cache the full month</strong> per location. Refresh at the start of each new month or on &gt;50km GPS shift. Offline fallback: last cached data, then fixed defaults (5am/8am/noon/5pm/9pm).</p>
+    <h3>Hijri Calendar — Aladhan</h3>
+    <p>Astronomical calculation (any future date pre-calculated). User can adjust ±2 days in Settings for moon sighting preference.</p>
+  </section>
+
+  <section id="implementation" class="spec-section">
+    <h2>27. Implementation Details</h2>
+    <h3>Activity Search Ranking</h3>
+    <p>1) Most recently logged, 2) most frequently logged, 3) alphabetical. Max 5 suggestions. Beginning-of-word matches prioritized.</p>
+    <h3>Error Handling</h3>
+    <p>Network: toast with Retry. Validation: inline field-level errors. Data corruption: treat as null, log for debugging. Corrupted local DB: "Reset and sync from cloud" option.</p>
+    <h3>Loading States</h3>
+    <p>Skeleton screens per screen (shimmer animation, 1.5s loop). Pull-to-refresh: Primary spinner. Button loading: spinner replaces text.</p>
+    <h3>Accessibility</h3>
+    <p>WCAG 2.1 AA target. Screen reader labels on all interactive elements. Dynamic text scaling (tested at 200%). Reduced motion support. High contrast mode. Color independence (icon/label pairs).</p>
+    <h3>Push Notifications</h3>
+    <p>iOS: banner + lock screen + Dynamic Island. Android: notification channels. Web: browser notifications (if permitted). Deep-linking to relevant screens. Independent from in-app notifications.</p>
+    <h3>Schema Migrations</h3>
+    <p>Cloud: Supabase migrations (only add, never remove/rename). Local: Drift migration scripts per version. Failure: error screen + export data button.</p>
+    <h3>Edge Functions</h3>
+    <p>1) Notification generation (hourly cron), 2) Competition leaderboard (DB trigger), 3) Account deletion cleanup.</p>
+  </section>
+
+  <section id="legal" class="spec-section">
+    <h2>28. Legal & Compliance</h2>
+    <h3>Age Restriction</h3>
+    <p><strong>13+ minimum.</strong> Checkbox during account creation. App Store rating: 12+.</p>
+    <h3>Privacy Policy (Summary)</h3>
+    <p>Data collected: account info, activity data, location (when granted), analytics (anonymized). NOT collected: passwords, payment info, health data (V1), contacts, camera data. NOT sold to third parties. NOT used for ads. Full policy covers: data sharing (friends opt-in, Supabase as processor), retention (active = indefinite, deleted = 24hr cloud purge), user rights (access, correct, delete, export, restrict, withdraw consent), cookies (web — essential + optional analytics), children (COPPA/GDPR).</p>
+    <h3>GDPR Compliance</h3>
+    <p>Lawful basis (consent + legitimate interest), DPA with Supabase required, breach notification within 72 hours, SCCs for international transfers. Cookie consent banner on web.</p>
+    <h3>App Store Requirements</h3>
+    <p>Privacy labels mapped for Apple + Google data safety. Account deletion functional (Apple requirement). Push notification opt-in. Privacy policy URL on store listing + in-app.</p>
+  </section>
+
+  <section id="analytics" class="spec-section">
+    <h2>29. Analytics & Monitoring</h2>
+    <h3>Analytics (PostHog)</h3>
+    <p>Screen views, feature usage, onboarding funnel, session data, UI interactions. <strong>No PII</strong> — anonymized user IDs only. No entry content, activity names, or location coordinates. Opt-out toggle in Settings. 12-month retention.</p>
+    <h3>Crash Reporting (Sentry)</h3>
+    <p>Stack traces, device/OS info, app version, anonymized user ID, breadcrumbs. No user data or screenshots. Always on (essential for stability).</p>
+  </section>
+
+  <section id="v2" class="spec-section">
+    <h2>30. V2 Roadmap</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>V1 Preparation</th></tr></thead>
+      <tbody>
+        <tr><td>Health device integration (Apple Health, Fitbit, etc.)</td><td><code>source</code> + <code>external_id</code> columns on entries + competition_entries</td></tr>
+        <tr><td>Apple Watch companion</td><td>None needed</td></tr>
+        <tr><td>AI chatbot for data queries</td><td>None needed</td></tr>
+        <tr><td>Multi-activity comparison charts</td><td>Chart builder infrastructure ready</td></tr>
+        <tr><td>Chart/report export (PDF/image)</td><td>Chart builder ready</td></tr>
+        <tr><td>Team competitions</td><td>Competition infrastructure ready</td></tr>
+        <tr><td>Community template library</td><td>Template structure ready</td></tr>
+        <tr><td>SQLite encryption (sqlcipher)</td><td>Required when health data imported</td></tr>
+        <tr><td>Premium tiers (RevenueCat)</td><td>None needed in V1 codebase</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="dependencies" class="spec-section">
+    <h2>31. Dependencies & Packages</h2>
+    <h3>Flutter Packages</h3>
+    <table>
+      <thead><tr><th>Package</th><th>Purpose</th><th>Category</th></tr></thead>
+      <tbody>
+        <tr><td><code>flutter_riverpod</code></td><td>State management</td><td>Core</td></tr>
+        <tr><td><code>supabase_flutter</code></td><td>Supabase client (auth, DB, storage, real-time)</td><td>Core</td></tr>
+        <tr><td><code>drift</code> + <code>sqlite3_flutter_libs</code></td><td>Local SQLite database</td><td>Core</td></tr>
+        <tr><td><code>go_router</code></td><td>Routing / navigation</td><td>Core</td></tr>
+        <tr><td><code>google_fonts</code></td><td>DM Serif Display, Inter, JetBrains Mono</td><td>Design</td></tr>
+        <tr><td><code>phosphor_flutter</code></td><td>Phosphor Icons</td><td>Design</td></tr>
+        <tr><td><code>flutter_map</code> + <code>latlong2</code></td><td>OpenStreetMap for Location field</td><td>Feature</td></tr>
+        <tr><td><code>geolocator</code></td><td>GPS location</td><td>Feature</td></tr>
+        <tr><td><code>geocoding</code></td><td>Address ↔ coordinates</td><td>Feature</td></tr>
+        <tr><td><code>flutter_local_notifications</code></td><td>Local notifications</td><td>Feature</td></tr>
+        <tr><td><code>firebase_messaging</code></td><td>Push notifications (FCM)</td><td>Feature</td></tr>
+        <tr><td><code>google_sign_in</code></td><td>Google OAuth</td><td>Auth</td></tr>
+        <tr><td><code>sign_in_with_apple</code></td><td>Apple Sign-In</td><td>Auth</td></tr>
+        <tr><td><code>flutter_secure_storage</code></td><td>Secure token storage</td><td>Security</td></tr>
+        <tr><td><code>local_auth</code></td><td>Biometric lock (Face ID, fingerprint)</td><td>Security</td></tr>
+        <tr><td><code>posthog_flutter</code></td><td>Analytics</td><td>Monitoring</td></tr>
+        <tr><td><code>sentry_flutter</code></td><td>Crash reporting</td><td>Monitoring</td></tr>
+        <tr><td><code>http</code> or <code>dio</code></td><td>HTTP client (for Aladhan API)</td><td>Networking</td></tr>
+        <tr><td><code>intl</code></td><td>Date/number formatting, localization</td><td>Utility</td></tr>
+        <tr><td><code>flutter_dotenv</code></td><td>Environment variables (.env)</td><td>Config</td></tr>
+        <tr><td><code>uuid</code></td><td>UUID generation</td><td>Utility</td></tr>
+        <tr><td><code>share_plus</code></td><td>System share sheet (for data export)</td><td>Feature</td></tr>
+        <tr><td><code>image_picker</code></td><td>Avatar upload (camera/gallery)</td><td>Feature</td></tr>
+        <tr><td><code>fl_chart</code></td><td>Charts for Insights screen</td><td>Feature</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Environment Configuration</h3>
+<pre>
+# .env (gitignored — never committed)
+SUPABASE_URL=https://ircnrwdulvgvpeyzvfjk.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_...
+POSTHOG_API_KEY=phc_...
+SENTRY_DSN=https://...@sentry.io/...
+</pre>
+
+    <div class="callout callout-warning">
+      <span class="callout-icon">⚠️</span>
+      <div><strong>Never commit <code>.env</code> to git.</strong> Add to <code>.gitignore</code>. Service role key stays in Supabase Dashboard only — never in client code.</div>
+    </div>
+  </section>
+
+</main>
+
+</main>
+
+<!-- Back to Top -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// Progress bar
+window.addEventListener('scroll', function() {
+  var h = document.documentElement;
+  var b = document.body;
+  var st = h.scrollTop || b.scrollTop;
+  var sh = h.scrollHeight || b.scrollHeight;
+  var ch = h.clientHeight;
+  var pct = (st / (sh - ch)) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  // Back to top
+  document.getElementById('backToTop').classList.toggle('visible', st > 600);
+});
+
+// Active nav link
+var sections = document.querySelectorAll('.spec-section');
+var navLinks = document.querySelectorAll('.nav-link');
+window.addEventListener('scroll', function() {
+  var current = '';
+  sections.forEach(function(section) {
+    var top = section.offsetTop;
+    if (window.scrollY >= top - 100) current = section.id;
+  });
+  navLinks.forEach(function(link) {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>
