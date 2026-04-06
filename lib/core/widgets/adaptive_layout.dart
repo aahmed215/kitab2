@@ -37,7 +37,6 @@ class AdaptiveScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Breakpoints.isDesktop(context);
-    final isPhone = Breakpoints.isPhone(context);
 
     // ─── Desktop/Tablet: Icon Rail + Content ───
     if (isDesktop) {
