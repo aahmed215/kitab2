@@ -16,7 +16,7 @@ class Routine with _$Routine {
   const factory Routine({
     required String id,
     required String userId,
-    required String categoryId,
+    String? categoryId,
 
     /// Routine name — unique per user (case-insensitive)
     required String name,

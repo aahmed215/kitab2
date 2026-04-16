@@ -26,12 +26,16 @@ class AdaptiveScaffold extends StatelessWidget {
   /// Optional FAB widget
   final Widget? floatingActionButton;
 
+  /// Optional persistent widget above the bottom nav (e.g., timer mini-bar)
+  final Widget? bottomWidget;
+
   const AdaptiveScaffold({
     super.key,
     required this.currentIndex,
     required this.onIndexChanged,
     required this.screens,
     this.floatingActionButton,
+    this.bottomWidget,
   });
 
   @override
@@ -43,16 +47,21 @@ class AdaptiveScaffold extends StatelessWidget {
       return Scaffold(
         body: Row(
           children: [
-            // Icon Rail (56px)
             _KitabIconRail(
               currentIndex: currentIndex,
               onIndexChanged: onIndexChanged,
             ),
-            // Content area
             Expanded(
-              child: IndexedStack(
-                index: currentIndex,
-                children: screens,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: IndexedStack(
+                      index: currentIndex,
+                      children: screens,
+                    ),
+                  ),
+                  if (bottomWidget != null) bottomWidget!,
+                ],
               ),
             ),
           ],
@@ -63,9 +72,16 @@ class AdaptiveScaffold extends StatelessWidget {
 
     // ─── Phone/Mobile Web: Bottom Navigation ───
     return Scaffold(
-      body: IndexedStack(
-        index: currentIndex,
-        children: screens,
+      body: Column(
+        children: [
+          Expanded(
+            child: IndexedStack(
+              index: currentIndex,
+              children: screens,
+            ),
+          ),
+          if (bottomWidget != null) bottomWidget!,
+        ],
       ),
       bottomNavigationBar: _KitabBottomNav(
         currentIndex: currentIndex,

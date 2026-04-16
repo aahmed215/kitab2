@@ -35,6 +35,7 @@ dependencies:
   latlong2: ^0.9.1
   geolocator: ^13.0.2
   geocoding: ^3.0.0
+  http: ^1.2.2
 
   # ═══ Notifications ═══
   flutter_local_notifications: ^18.0.1
@@ -46,7 +47,7 @@ dependencies:
   local_auth: ^2.3.0
 
   # ═══ Analytics & Monitoring ═══
-  # posthog_flutter: ^4.0.0  # Enable when PostHog account is set up
+  posthog_flutter: ^4.0.0
   sentry_flutter: ^8.14.2
 
   # ═══ Networking ═══
@@ -59,12 +60,18 @@ dependencies:
   share_plus: ^10.1.4
   image_picker: ^1.1.2
   path_provider: ^2.1.5
+  path: ^1.9.0
   connectivity_plus: ^6.1.1
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
 
   # ═══ Charts ═══
   fl_chart: ^0.70.2
+
+  # ═══ Animation ═══
+  rive: ^0.13.0
+  hijri: ^3.0.0
+  flutter_map_cancellable_tile_provider: ^3.0.2
 
 dev_dependencies:
   flutter_test:
@@ -81,3 +88,4 @@ flutter:
 
   assets:
     - .env
+    - assets/animations/

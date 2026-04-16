@@ -60,27 +60,30 @@ class KitabCard extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: KitabRadii.borderMd,
-            child: Row(
-              children: [
-                // ─── Optional Left Border ───
-                if (borderColor != null)
-                  Container(
-                    width: 4,
-                    color: borderColor,
-                  ),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ─── Optional Left Border ───
+                  if (borderColor != null)
+                    Container(
+                      width: 5,
+                      color: borderColor,
+                    ),
 
-                // ─── Card Content ───
-                Expanded(
-                  child: Padding(
-                    padding: padding ??
-                        const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 13,
-                        ),
-                    child: child,
+                  // ─── Card Content ───
+                  Expanded(
+                    child: Padding(
+                      padding: padding ??
+                          const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 13,
+                          ),
+                      child: child,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

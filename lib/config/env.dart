@@ -17,9 +17,13 @@ class Env {
   static String get supabaseAnonKey =>
       dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
-  /// PostHog API key for analytics (empty until configured)
+  /// PostHog API key for analytics
   static String get posthogApiKey =>
       dotenv.env['POSTHOG_API_KEY'] ?? '';
+
+  /// PostHog host URL
+  static String get posthogHost =>
+      dotenv.env['POSTHOG_HOST'] ?? 'https://us.i.posthog.com';
 
   /// Sentry DSN for crash reporting (empty until configured)
   static String get sentryDsn =>
